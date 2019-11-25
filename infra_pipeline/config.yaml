@@ -1,0 +1,4 @@
+# Config for Cloud Formation Stack
+aws_profile: pedro 
+aws_region: us-west-2
+stack_name: InfraContinous
