@@ -1,0 +1,63 @@
+#cloud-config
+
+apt_reboot_if_required: false
+package_update: false
+package_upgrade: false
+
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 0EBFCD88
+    nvidia-container-runtime.list:
+      source: |
+        deb https://nvidia.github.io/libnvidia-container/ubuntu16.04/$(ARCH) /
+        deb https://nvidia.github.io/nvidia-container-runtime/ubuntu16.04/$(ARCH) /
+        deb https://nvidia.github.io/nvidia-docker/ubuntu16.04/$(ARCH) /
+      keyid: F796ECB0
+    nvidia-cuda-drivers.list:
+      source: |
+        deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /
+      keyid: 7FA2AF80
+
+packages:
+  - docker-ce
+  - awscli
+  - nvidia-container-runtime
+  - nvidia-docker2
+  - cuda-runtime-10-2
+
+write_files:
+  - path: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/dockerd --add-runtime=nvidia=/usr/bin/nvidia-container-runtime
+  - path: /etc/default/docker
+    content: |
+      DOCKER_OPTS=""
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "dns": [ "8.8.8.8", "8.8.4.4" ],
+        "hosts": [ "0.0.0.0:2376", "unix:///var/run/docker.sock" ],
+        "tls": true,
+        "tlsverify": true,
+        "tlscacert": "/etc/docker/ca.pem",
+        "tlscert": "/etc/docker/server-cert.pem",
+        "tlskey": "/etc/docker/server-key.pem",
+        "runtimes": { "nvidia": { "path": "/usr/bin/nvidia-container-runtime", "runtimeArgs": [] } }
+      }
+  - path: /etc/docker/ca.pem
+    encoding: b64
+    content: {{ .CACert | base64 }}
+  - path: /etc/docker/server-cert.pem
+    encoding: b64
+    content: {{ .TLSCert | base64 }}
+  - path: /etc/docker/server-key.pem
+    encoding: b64
+    content: {{ .TLSKey | base64 }}
+
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, restart, docker ]

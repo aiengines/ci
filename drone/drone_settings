@@ -1,0 +1,26 @@
+
+# global settings
+DRONE_SERVER_HOST=ec2-xxxxxx.us-west-2.compute.amazonaws.com
+DRONE_SERVER_PROTO=http
+
+
+# autoscaler settings
+DRONE_POOL_MIN=1
+DRONE_POOL_MAX=10
+DRONE_AMAZON_REGION=us-west-2
+DRONE_AMAZON_SUBNET_ID=subnet-XXXXXXX
+DRONE_AMAZON_SECURITY_GROUP=sg-XXXXXXX
+DRONE_AMAZON_SSHKEY=drone-ssh-key
+DRONE_AMAZON_INSTANCE=p3.16xlarge
+#DRONE_AMAZON_IMAGE=ami-XXX
+DRONE_AMAZON_VOLUME_SIZE=100
+DRONE_AMAZON_IAM_PROFILE_ARN=arn:aws:iam::XXXXXXXX:instance-profile/DroneAgent
+DRONE_INTERVAL=30s
+DRONE_AMAZON_USERDATA_FILE=/etc/cloud-init-custom.yml
+DRONE_AGENT_CONCURRENCY=4
+
+# drone runner settings
+DRONE_RUNNER_CAPACITY=10
+
+. ./drone_secret_settings
+
