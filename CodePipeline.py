@@ -259,7 +259,7 @@ def config_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Infra pipeline",
         epilog="""
 """)
-    parser.add_argument('config', nargs=1, help='config file', default='config.yaml')
+    parser.add_argument('config', nargs=1, help='config file', default='CodePipeline_config.yaml')
     return parser
 
 
