@@ -31,7 +31,6 @@
             - iptables-persistent
             - nmap
             - build-essential
-#            - cmake
             - ninja-build
             - curl
             - libatlas-base-dev
@@ -82,6 +81,15 @@
       args:
         executable: /bin/bash
         creates: /usr/local/bin/cmake
+
+    - name: git configuration
+      copy:
+        content: |
+            [user]
+                email = mxnet-ci
+                name = mxnet-ci
+
+        dest: /home/jenkins_slave/.gitconfig
 
 
 - import_playbook: playbooks/docker.yml
