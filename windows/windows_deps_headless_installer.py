@@ -24,6 +24,7 @@ DEPS = {
         'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/OpenCV-windows-v3_4_1-vc14.zip',
         'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
         'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
+        'cmake': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cmake-3.15.5-win64-x64.msi'
 }
 
 
@@ -182,7 +183,7 @@ def install_vs():
 
 def install_cmake():
     logging.info("Installing CMAKE")
-    cmake_file_path = download('https://cmake.org/files/v3.11/cmake-3.11.4-win64-x64.msi')
+    cmake_file_path = download(DEPS['cmake'])
     run_command("msiexec /i {} /quiet /norestart ADD_CMAKE_TO_PATH=System".format(cmake_file_path))
 
 
@@ -293,8 +294,8 @@ def add_paths():
 
 
 def has_gpu():
-    hwinfo = check_output(['powershell','gwmi', 'win32_pnpEntity']) 
-    m = re.search('3D Video Adapter', hwinfo.decode())
+    hwinfo = check_output(['powershell','gwmi', 'win32_pnpEntity'])
+    m = re.search('3D Video', hwinfo.decode())
     if m:
         return True
     return False
@@ -309,10 +310,14 @@ def main():
                         default=False,
 			action='store_true')
     args = parser.parse_args()
-    if args.gpu:
+    #if args.gpu:
+    if has_gpu():
+        logging.info("GPU detected")
         install_nvdriver()
         install_cuda()
         install_cudnn()
+    else:
+        logging.info("GPU not detected")
     install_vs()
     install_cmake()
     install_openblas()
