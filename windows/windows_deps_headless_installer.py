@@ -229,7 +229,6 @@ def install_nvdriver():
         with zipfile.ZipFile(local_file, 'r') as zip:
             zip.extractall(tmpdir)
         run_command(tmpdir + "\\setup.exe /n /s /noeula /nofinish")
-    os.remove("C:\\nvidia_display_drivers_398.75_server2016.zip")
 
 
 def install_cuda():

@@ -22,4 +22,12 @@ Check-Call { C:\Python27\python -m pip install --upgrade pip  }
 Check-Call { C:\Python27\python -m pip install -r requirements.txt  }
 # Deps
 Check-Call { C:\Python37\python  windows_deps_headless_installer.py }
+
+# Other software
+Check-Call { C:\ProgramData\chocolatey\choco install jom -y }
+Check-Call { C:\ProgramData\chocolatey\choco install 7zip -y }
+Check-Call { C:\ProgramData\chocolatey\choco install mingw -y }
+Check-Call { C:\ProgramData\chocolatey\choco install javaruntime -y }
+Check-Call { C:\ProgramData\chocolatey\choco install git -y }
+
 Write-Output "End"
