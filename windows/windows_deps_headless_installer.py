@@ -13,6 +13,8 @@ import zipfile
 from time import sleep
 from urllib.error import HTTPError
 import logging
+from subprocess import check_output
+import re
 
 log = logging.getLogger(__name__)
 
@@ -288,6 +290,14 @@ def add_paths():
     new_path = current_path + ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin"
     logging.debug("new_path: {}".format(new_path))
     run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name Path -Value '" + new_path + "'")
+
+
+def has_gpu():
+    hwinfo = check_output(['powershell','gwmi', 'win32_pnpEntity']) 
+    m = re.search('3D Video Adapter', hwinfo.decode())
+    if m:
+        return True
+    return False
 
 
 def main():
