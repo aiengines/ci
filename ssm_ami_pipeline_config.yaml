@@ -1,0 +1,6 @@
+# Config for Cloud Formation Stack
+aws_profile: ci-dev
+aws_region: us-west-2
+stack_name: CIAMIFactory
+ssm_windows_ami_name: WindowsAMIFactory
+ssm_document_windows_ami: windows_ami_ssm.yaml
