@@ -41,7 +41,7 @@ parameters:
   SetupScriptSourceInfo:
     type: String
     description: "Source type info"
-    default: '{"owner":"aiengines", "repository":"ci", "path":"windows"}'
+    default: '{\"owner\":\"aiengines\", \"repository\":\"ci\", \"path\":\"windows\"}'
   SetupScriptEntry:
     type: String
     description: "Source script entry command"
@@ -478,8 +478,7 @@ mainSteps:
       sourceInfo:
       - '{"path": "{{ SlaveAutoconnectPythonS3 }}"}'
       commandLine:
-      - Move-Item -Path .\{{ SlaveAutoconnectPythonKey }} -Destination {{ SlaveAutoconnectPythonPath
-        }}
+      - Move-Item -Path .\{{ SlaveAutoconnectPythonKey }} -Destination {{ SlaveAutoconnectPythonPath }}
 - name: DownloadJenkinsSlaveAutoconnectBat
   action: aws:runCommand
   inputs:
@@ -492,8 +491,7 @@ mainSteps:
       sourceInfo:
       - '{"path": "{{ SlaveAutoconnectBatS3 }}"}'
       commandLine:
-      - Move-Item -Path .\{{ SlaveAutoconnectBatKey }} -Destination {{ SlaveAutoconnectBatPath
-        }}
+      - Move-Item -Path .\{{ SlaveAutoconnectBatKey }} -Destination {{ SlaveAutoconnectBatPath }}
 - name: CreateAutoconnectJob
   action: aws:runCommand
   maxAttempts: 3

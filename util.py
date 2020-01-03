@@ -151,7 +151,7 @@ def retry(target_exception, tries=4, delay_s=1, backoff=2):
     return decorated_retry
 
 
-def _stack_exists(client, stack_name):
+def stack_exists(client, stack_name):
     stacks = client.list_stacks()['StackSummaries']
     for stack in stacks:
         if stack['StackStatus'] == 'DELETE_COMPLETE':
@@ -161,13 +161,21 @@ def _stack_exists(client, stack_name):
     return False
 
 
+def delete_stack(client, stack_name):
+    if stack_exists(client, stack_name):
+        client.delete_stack(StackName=stack_name)
+        waiter = client.get_waiter('stack_delete_complete')
+        logging.info("Waiting for stack deletion...")
+        waiter.wait(StackName=stack_name)
+
+
+
 def instantiate_CF_template(template: Template, stack_name: str="unnamed", **params) -> None:
     client = boto3.client('cloudformation')
     logging.info(f"Validating stack {stack_name}")
     tpl_yaml = template.to_yaml()
     validate_result = client.validate_template(TemplateBody=tpl_yaml)
     logging.info(f"Creating stack {stack_name}")
-
     stack_params = dict(
             StackName = stack_name,
             TemplateBody = tpl_yaml,
@@ -176,7 +184,7 @@ def instantiate_CF_template(template: Template, stack_name: str="unnamed", **par
             #OnFailure = 'DELETE',
     )
     stack_params.update(params)
-    if _stack_exists(client, stack_name):
+    if stack_exists(client, stack_name):
         logging.warning(f"Stack '{stack_name}' already exists")
         stacks = client.describe_stacks(StackName=stack_name)
         status = stacks['Stacks'][0]['StackStatus']
@@ -184,11 +192,7 @@ def instantiate_CF_template(template: Template, stack_name: str="unnamed", **par
             # Stacks in Rollback complete can't be updated.
             #input("Press enter to delete the stack (is in ROLLBACK_COMPLETE state) or ^C to abort...")
             logging.info("Deleting stack...")
-            client.delete_stack(StackName=stack_name)
-            waiter = client.get_waiter('stack_delete_complete')
-            logging.info("Waiting for stack deletion...")
-            waiter.wait(StackName=stack_name)
-
+            delete_stack(client, stack_name)
             stack_result = client.create_stack(**stack_params)
             waiter = client.get_waiter('stack_create_complete')
             logging.info("Waiting for stack create...")

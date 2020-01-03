@@ -90,8 +90,11 @@ def main():
     template = create_pipeline_template(config)
     client = boto3.client('cloudformation')
 
-    # FIXME: make a better way to create the token / authenticate
     logging.info(f"Creating stack {config['stack_name']}")
+
+    client = boto3.client('cloudformation')
+    delete_stack(client, config['stack_name'])
+
     param_values_dict = parameters_interactive(template)
     tparams = dict(
             TemplateBody = template.to_yaml(),

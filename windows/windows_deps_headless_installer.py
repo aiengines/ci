@@ -344,15 +344,19 @@ def main():
                         help='GPU install',
                         default=False,
 			action='store_true')
+    parser.add_argument('-c', '--cpu',
+                        help='skip GPU install',
+                        default=False,
+			action='store_true')
+
     args = parser.parse_args()
-    #if args.gpu:
-    if has_gpu():
+    if (has_gpu() or args.gpu) and not args.cpu:
         logging.info("GPU detected")
         install_nvdriver()
         install_cuda()
         install_cudnn()
     else:
-        logging.info("GPU not detected")
+        logging.info("GPU environment skipped")
     install_vs()
     install_cmake()
     install_openblas()
