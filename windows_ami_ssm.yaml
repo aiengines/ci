@@ -8,7 +8,7 @@ parameters:
   SourceAmiId:
     type: String
     description: "(Required) The source Amazon Machine Image ID."
-    default: "{{ssm:/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base}}"
+    default: "{{ssm:/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base}}"
   IamInstanceProfileName:
     type: String
     description: "(Required) The name of the role that enables Systems Manager to
@@ -34,19 +34,18 @@ parameters:
     type: String
     description: "(Optional) Size of EBS volume."
     default: '500'
-  PostUpdateScriptS3:
+  SetupScriptSourceType:
     type: String
-    description: "(Required) Location of the S3 script for MXNet dependency installs."
-    default: https://s3.amazonaws.com/windows-post-install/post-install.py
-  PostUpdateScriptKey:
+    description: "Source type for setup scripts"
+    default: 'GitHub'
+  SetupScriptSourceInfo:
     type: String
-    description: "(Required) Name of the S3 script for MXNet dependency install."
-    default: post-install.py
-  PostUpdateScriptPath:
+    description: "Source type info"
+    default: '{"owner":"aiengines", "repository":"ci", "path":"windows"}'
+  SetupScriptEntry:
     type: String
-    description: "(Required) Destination path of the S3 script for MXNet dependency
-      install."
-    default: C:\post-install.py
+    description: "Source script entry command"
+    default: ./setup.ps1
   SlaveAutoconnectPythonS3:
     type: String
     description: "(Required) Location of the S3 script for Jenkins Autoconnect."
@@ -450,19 +449,23 @@ mainSteps:
       - Set-ItemProperty -Path $UserKey -Name 'IsInstalled' -Value 0
       - Write-Host 'IE Enhanced Security Configuration (ESC) has been disabled.' -ForegroundColor
         Green
-- name: InstallDeps 
+- name: SetupScript
   action: aws:runCommand
-  maxAttempts: 3
+  maxAttempts: 1
   onFailure: Abort
   timeoutSeconds: 7200
   inputs:
-    DocumentName: AWS-RunPowerShellScript
+    DocumentName: AWS-RunRemoteScript
     InstanceIds:
     - "{{ LaunchInstance.InstanceIds }}"
     Parameters:
+      sourceType:
+      - "{{SetupScriptSourceType}}"
+      sourceInfo:
+      - "{{SetupScriptSourceInfo}}"
       commands:
-      # FIXME
       - Set-ExecutionPolicy Bypass -Scope Process -Force
+      - "{{SetupScriptEntry}}"
 - name: DownloadJenkinsSlaveAutoconnectPython
   action: aws:runCommand
   inputs:

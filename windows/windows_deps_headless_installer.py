@@ -300,8 +300,15 @@ def has_gpu():
     return False
 
 
+def script_name() -> str:
+    """:returns: script name with leading paths removed"""
+    return os.path.split(sys.argv[0])[1]
+
+
 def main():
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(os.environ.get('LOGLEVEL', logging.DEBUG))
+    logging.basicConfig(format='{}: %(asctime)sZ %(levelname)s %(message)s'.format(script_name()))
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--gpu',
