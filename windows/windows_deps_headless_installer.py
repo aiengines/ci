@@ -178,6 +178,7 @@ def install_vs():
         if timer % 60 == 0:
             logging.info("Waiting for Visual Studio to install for the last {} seconds".format(str(timer)))
         timer += 1
+    logging.info("Visual studio install complete.")
 
 
 
@@ -185,6 +186,7 @@ def install_cmake():
     logging.info("Installing CMAKE")
     cmake_file_path = download(DEPS['cmake'])
     run_command("msiexec /i {} /quiet /norestart ADD_CMAKE_TO_PATH=System".format(cmake_file_path))
+    logging.info("CMAKE install complete")
 
 
 def install_openblas():
@@ -193,13 +195,14 @@ def install_openblas():
     with zipfile.ZipFile(local_file, 'r') as zip:
         zip.extractall("C:\\Program Files")
     run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name OpenBLAS_HOME -Value 'C:\\Program Files\\OpenBLAS-windows-v0_2_19'")
+    logging.info("Openblas Install complete")
 
 
 def install_mkl():
     logging.info("Installing MKL 2019.3.203...")
     file_path = download("http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15247/w_mkl_2019.3.203.exe")
     run_command("{} --silent --remove-extracted-files yes --a install -output=C:\mkl-install-log.txt -eula=accept".format(file_path))
-
+    logging.info("MKL Install complete")
 
 
 def install_opencv():
@@ -208,6 +211,7 @@ def install_opencv():
     with zipfile.ZipFile(local_file, 'r') as zip:
         zip.extractall("C:\\Program Files")
     run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name OpenCV_DIR -Value 'C:\\Program Files\\OpenCV-windows-v3_4_1-vc14'")
+    logging.info("OpenCV install complete")
 
 
 def install_cudnn():
@@ -220,6 +224,7 @@ def install_cudnn():
         copy(tmpdir+"\\cuda\\bin\\cudnn64_7.dll","C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v9.2\\bin")
         copy(tmpdir+"\\cuda\\include\\cudnn.h","C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v9.2\\include")
         copy(tmpdir+"\\cuda\\lib\\x64\\cudnn.lib","C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v9.2\\lib\\x64")
+    logging.info("cuDNN install complete")
 
 
 def install_nvdriver():
@@ -229,6 +234,7 @@ def install_nvdriver():
         with zipfile.ZipFile(local_file, 'r') as zip:
             zip.extractall(tmpdir)
         run_command(tmpdir + "\\setup.exe /n /s /noeula /nofinish")
+    logging.info("NVidia install complete")
 
 
 def install_cuda():
