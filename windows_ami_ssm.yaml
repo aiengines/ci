@@ -451,7 +451,7 @@ mainSteps:
         Green
 - name: SetupScript
   action: aws:runCommand
-  maxAttempts: 1
+  maxAttempts: 3
   onFailure: Abort
   timeoutSeconds: 7200
   inputs:
