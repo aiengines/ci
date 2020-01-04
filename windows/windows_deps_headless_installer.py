@@ -310,16 +310,16 @@ def install_cuda():
     + ' occupancy_calculator_9.2'
     )
     # Download patches and assume less than 100 patches exist
-    for patch_number in range(1, 100):
-        if patch_number == 100:
-            raise Exception('Probable patch loop: CUDA patch downloader is downloading at least 100 patches!')
-        try:
-            cuda_9_2_patch_file_path = download("https://developer.nvidia.com/compute/cuda/9.2/Prod2/patches/{0}/cuda_9.2.148.{0}_windows".format(patch_number))
-            run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_patch_file_path, cuda_9_2_patch_file_path.split('\\')[-1]), shell=True)
-            cuda_9_2_patch_file_path = cuda_9_2_patch_file_path + '.exe'
-            run_command("{} -s".format(cuda_9_2_patch_file_path))
-        except HTTPError as e:
-            break
+    #for patch_number in range(1, 100):
+    #    if patch_number == 100:
+    #        raise Exception('Probable patch loop: CUDA patch downloader is downloading at least 100 patches!')
+    #    try:
+    #        cuda_9_2_patch_file_path = download("https://developer.nvidia.com/compute/cuda/9.2/Prod2/patches/{0}/cuda_9.2.148.{0}_windows".format(patch_number))
+    #        run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_patch_file_path, cuda_9_2_patch_file_path.split('\\')[-1]), shell=True)
+    #        cuda_9_2_patch_file_path = cuda_9_2_patch_file_path + '.exe'
+    #        run_command("{} -s".format(cuda_9_2_patch_file_path))
+    #    except HTTPError as e:
+    #        break
 
 
 def add_paths():
@@ -348,7 +348,7 @@ def script_name() -> str:
 
 def main():
     logging.getLogger().setLevel(os.environ.get('LOGLEVEL', logging.DEBUG))
-    logging.basicConfig(format='{}: %(asctime)sZ %(levelname)s %(message)s'.format(script_name()))
+    logging.basicConfig(stream=sys.stdout, format='{}: %(asctime)sZ %(levelname)s %(message)s'.format(script_name()))
 
 
     parser = argparse.ArgumentParser()
