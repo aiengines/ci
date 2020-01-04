@@ -41,7 +41,7 @@ parameters:
   SetupScriptSourceInfo:
     type: String
     description: "Source type info"
-    default: '{\"owner\":\"aiengines\", \"repository\":\"ci\", \"path\":\"windows\"}'
+    default: '{"owner":"aiengines", "repository":"ci", "path":"windows"}'
   SetupScriptEntry:
     type: String
     description: "Source script entry command"
@@ -463,8 +463,8 @@ mainSteps:
       - "{{SetupScriptSourceType}}"
       sourceInfo:
       - "{{SetupScriptSourceInfo}}"
-      commands:
-      - Set-ExecutionPolicy Bypass -Scope Process -Force
+      commandLine:
+      #- Set-ExecutionPolicy Bypass -Scope Process -Force
       - "{{SetupScriptEntry}}"
 - name: DownloadJenkinsSlaveAutoconnectPython
   action: aws:runCommand
