@@ -39,6 +39,8 @@ from subprocess import check_output
 import re
 import sys
 
+ssl._create_default_https_context = ssl._create_unverified_context
+
 log = logging.getLogger(__name__)
 
 
@@ -311,12 +313,13 @@ def install_cuda():
     for patch_number in range(1, 100):
         if patch_number == 100:
             raise Exception('Probable patch loop: CUDA patch downloader is downloading at least 100 patches!')
-        cuda_9_2_patch_file_path = download("https://developer.nvidia.com/compute/cuda/9.2/Prod2/patches/{0}/cuda_9.2.148.{0}_windows".format(patch_number))
-        if cuda_9_2_patch_file_path == 404:
+        try:
+            cuda_9_2_patch_file_path = download("https://developer.nvidia.com/compute/cuda/9.2/Prod2/patches/{0}/cuda_9.2.148.{0}_windows".format(patch_number))
+            run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_patch_file_path, cuda_9_2_patch_file_path.split('\\')[-1]), shell=True)
+            cuda_9_2_patch_file_path = cuda_9_2_patch_file_path + '.exe'
+            run_command("{} -s".format(cuda_9_2_patch_file_path))
+        except HTTPError as e:
             break
-        run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_patch_file_path, cuda_9_2_patch_file_path.split('\\')[-1]), shell=True)
-        cuda_9_2_patch_file_path = cuda_9_2_patch_file_path + '.exe'
-        run_command("{} -s".format(cuda_9_2_patch_file_path))
 
 
 def add_paths():
@@ -331,8 +334,9 @@ def add_paths():
 
 def has_gpu():
     hwinfo = check_output(['powershell','gwmi', 'win32_pnpEntity'])
-    m = re.search('3D Video', hwinfo.decode())
-    if m:
+    m_g3 = re.search('3D Video', hwinfo.decode()) # G3
+    m_p3 = re.search('NVIDIA Tesla', hwinfo.decode()) # P3
+    if m_g3 or m_p3:
         return True
     return False
 
@@ -358,7 +362,7 @@ def main():
 			action='store_true')
 
     args = parser.parse_args()
-    if (has_gpu() or args.gpu) and not args.cpu:
+    if args.gpu:
         logging.info("GPU detected")
         install_nvdriver()
         install_cuda()
