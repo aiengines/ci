@@ -39,6 +39,8 @@ from subprocess import check_output
 import re
 import sys
 
+import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 log = logging.getLogger(__name__)
