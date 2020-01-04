@@ -311,17 +311,6 @@ def install_cuda():
     + ' nvml_dev_9.2' \
     + ' occupancy_calculator_9.2'
     )
-    # Download patches and assume less than 100 patches exist
-    #for patch_number in range(1, 100):
-    #    if patch_number == 100:
-    #        raise Exception('Probable patch loop: CUDA patch downloader is downloading at least 100 patches!')
-    #    try:
-    #        cuda_9_2_patch_file_path = download("https://developer.nvidia.com/compute/cuda/9.2/Prod2/patches/{0}/cuda_9.2.148.{0}_windows".format(patch_number))
-    #        run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_patch_file_path, cuda_9_2_patch_file_path.split('\\')[-1]), shell=True)
-    #        cuda_9_2_patch_file_path = cuda_9_2_patch_file_path + '.exe'
-    #        run_command("{} -s".format(cuda_9_2_patch_file_path))
-    #    except HTTPError as e:
-    #        break
 
 
 def add_paths():
@@ -335,6 +324,7 @@ def add_paths():
 
 
 def has_gpu():
+    # FIXME: this is too simplistic and not reliable as of now.
     hwinfo = check_output(['powershell','gwmi', 'win32_pnpEntity'])
     m_g3 = re.search('3D Video', hwinfo.decode()) # G3
     m_p3 = re.search('NVIDIA Tesla', hwinfo.decode()) # P3
@@ -358,11 +348,6 @@ def main():
                         help='GPU install',
                         default=False,
 			action='store_true')
-    parser.add_argument('-c', '--cpu',
-                        help='skip GPU install',
-                        default=False,
-			action='store_true')
-
     args = parser.parse_args()
     if args.gpu:
         logging.info("GPU detected")
