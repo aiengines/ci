@@ -50,6 +50,8 @@ DEPS = {
         'cmake': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cmake-3.15.5-win64-x64.msi'
 }
 
+DEFAULT_SUBPROCESS_TIMEOUT=3600
+
 
 def retry(target_exception, tries=4, delay_s=1, backoff=2):
     """Retry calling the decorated function using an exponential backoff.
@@ -134,10 +136,10 @@ def download(url, dest=None, progress=True) -> str:
 
 # Takes arguments and runs command on host.  Shell is disabled by default.
 # TODO: Move timeout to args
-def run_command(args, shell=False):
+def run_command(*args, shell=False, timeout=DEFAULT_SUBPROCESS_TIMEOUT, **kwargs):
     try:
         logging.info("Issuing command: {}".format(args))
-        res = subprocess.check_output(args, shell=shell, timeout=1800).decode("utf-8").replace("\r\n", "")
+        res = subprocess.check_output(*args, shell=shell, timeout=timeout).decode("utf-8").replace("\r\n", "\n")
         logging.info("Output: {}".format(res))
     except subprocess.CalledProcessError as e:
         raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
@@ -196,13 +198,19 @@ def install_vs():
         ' --norestart'
     )
     # Workaround for --wait sometimes ignoring the subprocesses doing component installs
+    def vs_still_installing():
+        return {'vs_installer.exe', 'vs_installershell.exe', 'vs_setup_bootstrapper.exe'} & set(map(lambda process: process.name(), psutil.process_iter()))
     timer = 0
-    while {'vs_installer.exe', 'vs_installershell.exe', 'vs_setup_bootstrapper.exe'} & set(map(lambda process: process.name(), psutil.process_iter())):
+    while vs_still_installing() and timer < DEFAULT_SUBPROCESS_TIMEOUT:
+        logging.warning("VS installers still running for %d s", timer)
         if timer % 60 == 0:
             logging.info("Waiting for Visual Studio to install for the last {} seconds".format(str(timer)))
+        sleep(1)
         timer += 1
-    logging.info("Visual studio install complete.")
-
+    if vs_still_installing():
+        logging.warning("VS install still running after timeout (%d)", DEFAULT_SUBPROCESS_TIMEOUT)
+    else:
+        logging.info("Visual studio install complete.")
 
 
 def install_cmake():
