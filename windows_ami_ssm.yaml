@@ -29,7 +29,7 @@ parameters:
     type: String
     description: "(Optional) Type of instance to launch as the workspace host. Instance
       types vary by region. Default is t2.medium."
-    default: c5.18xlarge
+    default: c5.9xlarge
   EBSVolumeSize:
     type: String
     description: "(Optional) Size of EBS volume."
@@ -451,9 +451,9 @@ mainSteps:
         Green
 - name: SetupScript
   action: aws:runCommand
-  maxAttempts: 3
+  maxAttempts: 1
   onFailure: Abort
-  timeoutSeconds: 7200
+  timeoutSeconds: 10800
   inputs:
     DocumentName: AWS-RunRemoteScript
     InstanceIds:
