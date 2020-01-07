@@ -1,3 +1,4 @@
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -39,7 +40,7 @@ Check-Call { C:\Python37\python -m pip install -r requirements.txt  }
 Check-Call { C:\Python27\python -m pip install --upgrade pip  }
 Check-Call { C:\Python27\python -m pip install -r requirements.txt  }
 # Deps
-Check-Call { C:\Python37\python  windows_deps_headless_installer.py }
+Check-Call { C:\Python37\python  windows_deps_headless_installer.py --gpu }
 
 # Other software
 Check-Call { C:\ProgramData\chocolatey\choco install jom -y }
