@@ -220,7 +220,8 @@ def install_vs():
 def install_cmake():
     logging.info("Installing CMAKE")
     cmake_file_path = download(DEPS['cmake'])
-    run_command("msiexec /i {} /quiet /norestart ADD_CMAKE_TO_PATH=System".format(cmake_file_path))
+    #run_command("msiexec /i {} /quiet /norestart ADD_CMAKE_TO_PATH=System".format(cmake_file_path))
+    run_command("msiexec /i {} /quiet /norestart".format(cmake_file_path))
     logging.info("CMAKE install complete")
 
 
@@ -357,7 +358,7 @@ def main():
     else:
         logging.info("GPU environment skipped")
     install_vs()
-    install_cmake()
+    #install_cmake()
     install_openblas()
     install_mkl()
     install_opencv()
