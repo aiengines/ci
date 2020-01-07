@@ -184,7 +184,7 @@ def install_vs():
         ' --add Microsoft.VisualStudio.Workload.NativeDesktop' \
         ' --add Component.GitHub.VisualStudio' \
         ' --add Microsoft.VisualStudio.Component.VC.CMake.Project' \
-        ' --add Microsoft.VisualStudio.Component.VC.140' \
+        ' --add Microsoft.VisualStudio.Component.VC.CoreIde' \
         ' --add Microsoft.VisualStudio.Component.VC.ASAN' \
         ' --wait' \
         ' --passive' \
