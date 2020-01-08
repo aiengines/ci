@@ -190,7 +190,41 @@ def on_rm_error(func, path, exc_info):
     os.unlink(path)
 
 
-def install_vs():
+def install_vs_2019():
+    # Visual studio
+    # Components: https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-community?vs-2019&view=vs-2019
+    logging.info("Installing Visual Studio 2019")
+    vs_file_path = download('https://aka.ms/vs/16/release/vs_community.exe')
+    run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(vs_file_path, vs_file_path.split('\\')[-1]), shell=True)
+    vs_file_path = vs_file_path + '.exe'
+    ret = call(vs_file_path +
+        ' --add Microsoft.VisualStudio.Workload.NativeDesktop' \
+        ' --add Component.GitHub.VisualStudio' \
+        ' --add Microsoft.VisualStudio.Component.VC.CMake.Project' \
+        ' --add Microsoft.VisualStudio.Component.VC.CoreIde' \
+        ' --add Microsoft.VisualStudio.Component.VC.ASAN' \
+        ' --wait' \
+        ' --passive' \
+        ' --norestart'
+    )
+    # Workaround for --wait sometimes ignoring the subprocesses doing component installs
+
+    def vs_still_installing():
+        return {'vs_installer.exe', 'vs_installershell.exe', 'vs_setup_bootstrapper.exe'} & set(map(lambda process: process.name(), psutil.process_iter()))
+    timer = 0
+    while vs_still_installing() and timer < DEFAULT_SUBPROCESS_TIMEOUT:
+        logging.warning("VS installers still running for %d s", timer)
+        if timer % 60 == 0:
+            logging.info("Waiting for Visual Studio to install for the last {} seconds".format(str(timer)))
+        sleep(1)
+        timer += 1
+    if vs_still_installing():
+        logging.warning("VS install still running after timeout (%d)", DEFAULT_SUBPROCESS_TIMEOUT)
+    else:
+        logging.info("Visual studio install complete.")
+
+
+def install_vs_2017():
     # Visual Studio CE 2017
     # Path: C:\Program Files (x86)\Microsoft Visual Studio 14.0
     # Components: https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-community?view=vs-2017#visual-studio-core-editor-included-with-visual-studio-community-2017
@@ -241,6 +275,7 @@ def install_vs():
         logging.warning("VS install still running after timeout (%d)", DEFAULT_SUBPROCESS_TIMEOUT)
     else:
         logging.info("Visual studio install complete.")
+
 
 
 def install_cmake():
@@ -414,7 +449,8 @@ def main():
     # needed for compilation with nvcc
     install_cuda()
     install_cudnn()
-    install_vs()
+    install_vs_2017()
+    install_vs_2019()
     # installed from choco
     # install_cmake()
     install_openblas()
