@@ -51,7 +51,7 @@ DEPS = {
         'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/OpenCV-windows-v3_4_1-vc14.zip',
         'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
         'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
-        'cmake': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cmake-3.15.5-win64-x64.msi'
+        'cmake': 'https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-win64-x64.msi'
 }
 
 DEFAULT_SUBPROCESS_TIMEOUT=3600
@@ -219,9 +219,8 @@ def install_vs():
 
 def install_cmake():
     logging.info("Installing CMAKE")
-    cmake_file_path = download(DEPS['cmake'])
-    #run_command("msiexec /i {} /quiet /norestart ADD_CMAKE_TO_PATH=System".format(cmake_file_path))
-    run_command("msiexec /i {} /quiet /norestart".format(cmake_file_path))
+    cmake_file_path = download(DEPS['cmake'], '.')
+    run_command(f"{cmake_file_path} /quiet /passive /n")
     logging.info("CMAKE install complete")
 
 
@@ -358,7 +357,7 @@ def main():
     else:
         logging.info("GPU environment skipped")
     install_vs()
-    #install_cmake()
+    install_cmake()
     install_openblas()
     install_mkl()
     install_opencv()
