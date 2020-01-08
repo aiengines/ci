@@ -35,7 +35,7 @@ import zipfile
 from time import sleep
 from urllib.error import HTTPError
 import logging
-from subprocess import check_output
+from subprocess import check_output, check_call
 import re
 import sys
 
@@ -118,7 +118,7 @@ def download(url, dest=None, progress=True) -> str:
                     self.pbar.finish()
     if dest and os.path.isdir(dest):
         local_file = os.path.split(urlparse(url).path)[1]
-        local_path = os.path.join(dest, local_file)
+        local_path = os.path.normpath(os.path.join(dest, local_file))
     else:
         local_path = dest
     with urlopen(url) as c:
@@ -209,7 +209,7 @@ def install_vs():
 def install_cmake():
     logging.info("Installing CMAKE")
     cmake_file_path = download(DEPS['cmake'], '.')
-    run_command(f"{cmake_file_path} /quiet /passive /n")
+    check_call(['msiexec ', '/n', '/passive', '/i', cmake_file_path])
     logging.info("CMAKE install complete")
 
 
