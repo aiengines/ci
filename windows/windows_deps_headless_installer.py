@@ -173,30 +173,19 @@ def on_rm_error( func, path, exc_info):
 
 
 def install_vs():
-    # Visual Studio CE 2017
+    # Visual studio
     # Path: C:\Program Files (x86)\Microsoft Visual Studio 14.0
-    # Components: https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-community?view=vs-2017#visual-studio-core-editor-included-with-visual-studio-community-2017
+    # Components: https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-community?vs-2019&view=vs-2019
     logging.info("Installing Visual Studio CE 2017...")
-    vs_file_path = download('https://aka.ms/eac464')
+    vs_file_path = download('https://aka.ms/vs/16/release/vs_community.exe')
     run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(vs_file_path, vs_file_path.split('\\')[-1]), shell=True)
     vs_file_path = vs_file_path + '.exe'
     run_command(vs_file_path + \
-        ' --add Microsoft.VisualStudio.Workload.ManagedDesktop' \
-        ' --add Microsoft.VisualStudio.Workload.NetCoreTools' \
-        ' --add Microsoft.VisualStudio.Workload.NetWeb' \
-        ' --add Microsoft.VisualStudio.Workload.Node' \
-        ' --add Microsoft.VisualStudio.Workload.Office' \
-        ' --add Microsoft.VisualStudio.Component.TypeScript.2.0' \
-        ' --add Microsoft.VisualStudio.Component.TestTools.WebLoadTest' \
+        ' --add Microsoft.VisualStudio.Workload.NativeDesktop' \
         ' --add Component.GitHub.VisualStudio' \
-        ' --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core' \
-        ' --add Microsoft.VisualStudio.Component.Static.Analysis.Tools' \
         ' --add Microsoft.VisualStudio.Component.VC.CMake.Project' \
-        ' --add Microsoft.VisualStudio.Component.VC.140' \
-        ' --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop' \
-        ' --add Microsoft.VisualStudio.Component.Windows10SDK.15063.UWP' \
-        ' --add Microsoft.VisualStudio.Component.Windows10SDK.15063.UWP.Native' \
-        ' --add Microsoft.VisualStudio.ComponentGroup.Windows10SDK.15063' \
+        ' --add Microsoft.VisualStudio.Component.VC.CoreIde' \
+        ' --add Microsoft.VisualStudio.Component.VC.ASAN' \
         ' --wait' \
         ' --passive' \
         ' --norestart'
