@@ -48,7 +48,7 @@ log = logging.getLogger(__name__)
 
 DEPS = {
         'openblas': 'https://windows-post-install.s3-us-west-2.amazonaws.com/OpenBLAS-windows-v0_2_19.zip',
-        'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/OpenCV-windows-v3_4_1-vc14.zip',
+        'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/opencv-windows-4.1.2-vc14_vc15.zip',
         'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
         'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
         'cmake': 'https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-win64-x64.msi'
@@ -242,10 +242,13 @@ def install_mkl():
 
 def install_opencv():
     logging.info("Installing OpenCV")
-    local_file = download(DEPS['opencv'])
-    with zipfile.ZipFile(local_file, 'r') as zip:
-        zip.extractall("C:\\Program Files")
-    run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name OpenCV_DIR -Value 'C:\\Program Files\\OpenCV-windows-v3_4_1-vc14'")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        local_file = download(DEPS['opencv'])
+        with zipfile.ZipFile(local_file, 'r') as zip:
+            zip.extractall(tmpdir)
+        copy(f'{tmpdir}\opencv', 'c:\Program Files\opencv')
+
+    run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name OpenCV_DIR -Value 'C:\\Program Files\\opencv'")
     logging.info("OpenCV install complete")
 
 
