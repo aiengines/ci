@@ -357,7 +357,7 @@ def main():
     else:
         logging.info("GPU environment skipped")
     install_vs()
-    install_cmake()
+    #install_cmake()
     install_openblas()
     install_mkl()
     install_opencv()
