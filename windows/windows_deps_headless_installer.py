@@ -52,6 +52,8 @@ DEPS = {
         'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/opencv-windows-4.1.2-vc14_vc15.zip',
         'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
         'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
+        # This installation of CMake breaks windows PATH when executing vcvars, installing from
+        # chocolatey from powershell instead.
         'cmake': 'https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-win64-x64.msi'
 }
 
