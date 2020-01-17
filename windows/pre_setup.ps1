@@ -37,8 +37,8 @@ Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Install-Module -Force OpenSSHUtils -Scope AllUsers
-Set-Service -Name ssh-agent -StartupType ‘Automatic’
-Set-Service -Name sshd -StartupType ‘Automatic’
+Set-Service -Name ssh-agent -StartupType 'Automatic'
+Set-Service -Name sshd -StartupType 'Automatic'
 Start-Service ssh-agent
 Start-Service sshd
 Check-Call { cd C:\Users\Administrator }
