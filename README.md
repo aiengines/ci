@@ -12,10 +12,16 @@ Pre-requisite - AWS CLI is installed and configured.
 aws ssm get-parameter --name /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
 ```
 ## Step 2 : Instance Creation
-P2 instance + 200Gig storage + Security Group
+#### Choose AMI
+Use AMI ID from Step 1
+
+#### Choose Instance Type
+Nothing specific. Can choose P2 instance
+
+#### Configure Instance
 Add user data while creating instance (Configure Instance -> User Data) as follows
 
-### User data
+##### User data
 
 ```
 <powershell>
@@ -30,6 +36,12 @@ Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
 </powershell>
 ```
+
+#### Add storage
+200Gig storage 
+#### Security Group
+Select an existing security group
+Choose both : AWS RDP and AWS SSH
 
 ## Step 3 : Instance steps
 Using Microsoft Remote Desktop, connect to the remote instance.
