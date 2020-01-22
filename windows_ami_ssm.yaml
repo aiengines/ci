@@ -467,6 +467,7 @@ mainSteps:
       commandLine:
       #- Set-ExecutionPolicy Bypass -Scope Process -Force
       - "{{SetupScriptEntry}}"
+      executionTimeout: '10800'
     CloudWatchOutputConfig:
       CloudWatchLogGroupName: SetupScriptCommand
       CloudWatchOutputEnabled: true
