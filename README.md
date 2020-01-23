@@ -3,27 +3,25 @@
 
 
 # Windows environment setup
+Steps undertaken for **_Windows CI AMI creation_**.
+Pre-requisite - AWS CLI is installed and configured.
 
-Get AMI id:
+## Step 1 : Get AMI id
 
 ```
 aws ssm get-parameter --name /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
 ```
+## Step 2 : Instance Creation
+#### Choose AMI
+Use AMI ID from Step 1
 
-In a powershell prompt execute
+#### Choose Instance Type
+Nothing specific. Can choose P2 instance
 
-```
-Set-ExecutionPolicy Bypass -Scope Process -Force
-./setup.ps1
-```
+#### Configure Instance
+Add user data while creating instance (Configure Instance -> User Data) as follows
 
-
-
-CUDA 10.2:
-http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe
-
-
-## User data
+##### User data
 
 ```
 <powershell>
@@ -39,5 +37,48 @@ reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hide
 </powershell>
 ```
 
+#### Add storage
+200Gig storage 
+#### Security Group
+Select an existing security group
+Choose both : AWS RDP and AWS SSH
 
+## Step 3 : Instance steps
+Using Microsoft Remote Desktop, connect to the remote instance.
+In a powershell prompt execute
 
+```
+Set-ExecutionPolicy Bypass -Scope Process -Force
+./setup.ps1
+```
+
+## Step 4 : Create AMI with base dependencies
+
+Stop the instance.
+Create Amazon Machine Image out of the instance (Windows GPU Updated Deps AMI)
+Refer : https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/tkv-create-ami-from-instance.html
+
+## Step 5 : Launch instance with Base AMI
+
+Upon launching the p2 instance using the base AMI (username password same as 1 used for creating base AMI)
+Clone the repo and build for windows :
+```
+git clone -b windows_builds --recursive https://github.com/larroy/mxnet.git
+python .\ci\build_windows.py
+```
+
+## Step 6 : Create the Windows GPU Jenkins AMI
+It differs from the previous AMI as it has base AMI + Jenkins Slave autoconnect.
+
+Restart the stopped instance
+```
+./jenkins_slave.ps1
+```
+Create Amazon Machine Image (just like Step 4)
+
+## Step 7 : Test
+To Do: Add step to update the CI Infra on AWS to pick the updated AMI.
+For testing, run a job (windows GPU in this case) on Jenkins CI Dev.
+
+CUDA 10.2:
+http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe
