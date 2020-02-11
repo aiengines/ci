@@ -374,7 +374,7 @@ def main():
                         default=False,
 			action='store_true')
     args = parser.parse_args()
-    if args.gpu and has_gpu():
+    if args.gpu or has_gpu():
         logging.info("GPU detected")
         install_nvdriver()
         install_cuda()
