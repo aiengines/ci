@@ -42,4 +42,4 @@ $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType
 Register-ScheduledTask "JenkinsAutoConnect" -Description "Connect to Jenkins at startup" -Action $action -Trigger $trigger -Principal $principal
 
 # trigger userdata processing on next boot so jenkins slave settings get written
-Check-Call { C:\ProgramData\Amazon\EC2-Windows\Launch\Scripts\InitializeInstance.ps1 –Schedule }
+Check-Call { C:\ProgramData\Amazon\EC2-Windows\Launch\Scripts\InitializeInstance.ps1 -Schedule }
