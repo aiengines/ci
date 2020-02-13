@@ -155,6 +155,8 @@ def delete_stack_s3_content(client, stack_name) -> None:
     # 'OutputValue': 'cdpipeline-s3bucket-1o1kj4z50v7gv',
     # 'Description': 'Bucket for build artifacts'}
     buckets = []
+    if not 'Outputs' in stacks['Stacks'][0]:
+        return
     for output in stacks['Stacks'][0]['Outputs']:
         if output['OutputKey'] == 'ArtifactBucket':
             buckets.append(output['OutputValue'])
