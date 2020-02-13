@@ -17,10 +17,11 @@ from troposphere.s3 import Bucket
 from troposphere.ssm import Document
 from awacs.aws import Allow, Statement, Principal, PolicyDocument
 from awacs.sts import AssumeRole
-from util import *
 import argparse
 from typing import List
 from troposphere.codebuild import Project, Environment, Artifacts, Source
+import awsutils
+import yaml
 
 
 
@@ -93,7 +94,7 @@ def main():
     logging.info(f"Creating stack {config['stack_name']}")
 
     client = boto3.client('cloudformation')
-    delete_stack(client, config['stack_name'])
+    awsutils.delete_stack(client, config['stack_name'])
 
     param_values_dict = parameters_interactive(template)
     tparams = dict(
@@ -102,7 +103,7 @@ def main():
             Capabilities=['CAPABILITY_IAM'],
             #OnFailure = 'DELETE',
     )
-    instantiate_CF_template(template, config['stack_name'], **tparams)
+    awsutils.instantiate_CF_template(template, config['stack_name'], **tparams)
     return 0
 
 if __name__ == '__main__':

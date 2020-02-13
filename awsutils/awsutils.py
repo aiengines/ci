@@ -17,20 +17,6 @@ import sys
 from subprocess import check_call
 from typing import List, Dict, Sequence
 
-def script_name() -> str:
-    """:returns: script name with leading paths removed"""
-    return os.path.split(sys.argv[0])[1]
-
-
-def config_logging():
-    logging_conf = os.getenv('LOGGING_CONF', 'logging.conf')
-    if os.path.isfile(logging_conf):
-        logging.config.fileConfig(logging_conf)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-        logging.warning("logging.conf not found when configuring logging, logging not configured")
-        logging.basicConfig(format='{}: %(asctime)-15s %(message)s'.format(script_name()))
-
 
 def get_root() -> str:
     """Get root folder (tagged with .root file)"""

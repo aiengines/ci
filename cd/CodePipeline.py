@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Continuous deployment for infrastructue"""
+"""Github attached AWS Code Pipeline"""
 
 __author__ = 'Pedro Larroy'
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 import boto3
@@ -11,7 +11,7 @@ import os
 import sys
 import subprocess
 import logging
-from troposphere import Parameter, Ref, Template
+from troposphere import Parameter, Ref, Template, iam, Output
 from troposphere.iam import Role
 from troposphere.s3 import Bucket
 from troposphere.codepipeline import (
@@ -19,27 +19,28 @@ from troposphere.codepipeline import (
     WebhookAuthConfiguration, WebhookFilterRule,
     ArtifactStore, DisableInboundStageTransitions)
 import troposphere.codebuild as cb
-from awacs.aws import Allow, Statement, Principal, PolicyDocument
-from awacs.sts import AssumeRole
-from util import *
 import argparse
-from typing import List
+from awacs.aws import Allow, Statement, Principal, PolicyDocument, Policy
+from awacs.sts import AssumeRole
+from typing import List, Dict, Sequence
+import yaml
+import awsutils
+
 from troposphere.codebuild import Project, Environment, Artifacts, Source
 
-
-
-def create_pipeline_template(name) -> Template:
+def create_pipeline_template(config) -> Template:
     t = Template()
 
     github_token = t.add_parameter(Parameter(
         "GithubToken",
-        Type = "String"
+        Type = "String",
+        Default = os.environ.get('GH_TOKEN', '')
     ))
 
     github_owner = t.add_parameter(Parameter(
         "GitHubOwner",
         Type = 'String',
-        Default = 'larroy',
+        Default = 'aiengines',
         AllowedPattern = "[A-Za-z0-9-_]+"
     ))
 
@@ -58,7 +59,7 @@ def create_pipeline_template(name) -> Template:
     ))
 
     artifact_store_s3_bucket = t.add_resource(Bucket(
-        name + "bucket",
+        "S3Bucket",
     ))
 
     cloudformationrole = t.add_resource(Role(
@@ -91,43 +92,46 @@ def create_pipeline_template(name) -> Template:
     ))
 
 
-    code_build_role = t.add_resource(Role(
-        "CodeBuildRole",
-        AssumeRolePolicyDocument = PolicyDocument(
-            Statement = [
-                Statement(
-                    Effect = Allow,
-                    Action = [AssumeRole],
-                    Principal = Principal("Service", ["codebuild.amazonaws.com"])
-                )
-            ]
-        ),
-        ManagedPolicyArns=[
-            'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-            'arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess',
-            'arn:aws:iam::aws:policy/CloudWatchFullAccess',
-        ])
-    )
-
-    environment = Environment(
-        ComputeType='BUILD_GENERAL1_SMALL',
-        Image='aws/codebuild/python:3.7.1',
+    linux_environment = Environment(
+        ComputeType='BUILD_GENERAL1_LARGE',
+        Image='aws/codebuild/standard:3.0',
         Type='LINUX_CONTAINER',
     )
 
+    codebuild_role = t.add_resource(
+        Role(
+            "CodeBuildRole",
+            AssumeRolePolicyDocument=Policy(
+                Statement=[
+                    Statement(
+                        Effect=Allow,
+                        Action=[AssumeRole],
+                        Principal=Principal("Service", ["codebuild.amazonaws.com"])
+                    )
+                ]
+            ),
+            ManagedPolicyArns=[
+                'arn:aws:iam::aws:policy/AmazonS3FullAccess',
+                'arn:aws:iam::aws:policy/CloudWatchFullAccess',
+                'arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess',
+            ],
+        )
+    )
+
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-source.html
-    codebuild_project = t.add_resource(Project(
-        name,
-        Name = name,
-        Description = 'continuous deployment of infrastructure',
+    cb_project = t.add_resource(Project(
+        "CDBuild",
+        Name = "CDBuild",
+        Description = 'Continous pipeline',
         Artifacts = Artifacts(Type='CODEPIPELINE'),
-        Environment = environment,
-        Source = Source(Type='CODEPIPELINE'),
-        ServiceRole = code_build_role.GetAtt('Arn')
+        Environment = linux_environment,
+        Source = Source(Type='CODEPIPELINE', BuildSpec="cd/buildspec.yml"),
+        ServiceRole = Ref(codebuild_role)
     ))
 
+
     pipeline = t.add_resource(Pipeline(
-        name + "Pipeline",
+        "CDPipeline",
         ArtifactStore = ArtifactStore(
             Type = "S3",
             Location = Ref(artifact_store_s3_bucket)
@@ -173,7 +177,7 @@ def create_pipeline_template(name) -> Template:
                 Name = "Build",
                 Actions = [
                     Actions(
-                        Name = "BuildAction",
+                        Name = "LinuxBuild",
                         ActionTypeId = ActionTypeId(
                             Category = "Build",
                             Owner = "AWS",
@@ -187,14 +191,14 @@ def create_pipeline_template(name) -> Template:
                         ],
                         OutputArtifacts = [
                             OutputArtifacts(
-                                Name = "BuildArtifacts"
+                                Name = "LinuxBuild"
                             )
                         ],
                         Configuration = {
-                            'ProjectName': Ref(codebuild_project),
+                            'ProjectName': Ref(cb_project),
                         },
                         RunOrder = "1"
-                    )
+                    ),
                 ]
             ),
 
@@ -218,8 +222,13 @@ def create_pipeline_template(name) -> Template:
         TargetPipelineVersion = pipeline.GetAtt('Version')
     ))
 
-    return t
+    t.add_output(Output(
+        "ArtifactBucket",
+        Description="Bucket for build artifacts",
+        Value=Ref(artifact_store_s3_bucket)
+    ))
 
+    return t
 
 def parameters_interactive(template: Template) -> List[dict]:
     """
@@ -242,6 +251,7 @@ def parameters_interactive(template: Template) -> List[dict]:
     return parameter_values
 
 
+
 def config_logging():
     import time
     logging.getLogger().setLevel(os.environ.get('LOGLEVEL', logging.INFO))
@@ -256,10 +266,10 @@ def script_name() -> str:
 
 
 def config_argparse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Infra pipeline",
+    parser = argparse.ArgumentParser(description="Code pipeline",
         epilog="""
 """)
-    parser.add_argument('config', nargs=1, help='config file', default='CodePipeline_config.yaml')
+    parser.add_argument('config', nargs='?', help='config file', default='config.yaml')
     return parser
 
 
@@ -267,25 +277,27 @@ def main():
     config_logging()
     parser = config_argparse()
     args = parser.parse_args()
-    with open(args.config[0], 'r') as fh:
+    with open(args.config, 'r') as fh:
         config = yaml.load(fh, Loader=yaml.SafeLoader)
 
     boto3.setup_default_session(region_name=config['aws_region'], profile_name=config['aws_profile'])
 
-    template = create_pipeline_template(config['stack_name'])
+    template = create_pipeline_template(config)
     client = boto3.client('cloudformation')
 
-    # FIXME: make a better way to create the token / authenticate
     logging.info(f"Creating stack {config['stack_name']}")
+
+    client = boto3.client('cloudformation')
+    awsutils.delete_stack(client, config['stack_name'])
+
     param_values_dict = parameters_interactive(template)
     tparams = dict(
-            StackName = config['stack_name'],
             TemplateBody = template.to_yaml(),
             Parameters = param_values_dict,
             Capabilities=['CAPABILITY_IAM'],
             #OnFailure = 'DELETE',
     )
-    instantiate_CF_template(template, config['stack_name'], **tparams)
+    awsutils.instantiate_CF_template(template, config['stack_name'], **tparams)
     return 0
 
 if __name__ == '__main__':

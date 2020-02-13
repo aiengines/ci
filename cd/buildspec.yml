@@ -1,0 +1,12 @@
+# This is a WIP to deploy infrastructure automatically
+# https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - pip install -r requirements.txt
+      - pip install awsutils
+  build:
+    commands:
+      - ls
