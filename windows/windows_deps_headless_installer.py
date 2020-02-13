@@ -323,6 +323,7 @@ def add_paths():
     # TODO: Add python paths (python -> C:\\Python37\\python.exe, python2 -> C:\\Python27\\python.exe)
     logging.info("Adding Windows Kits to PATH...")
     current_path = run_command("PowerShell (Get-Itemproperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name Path).Path")
+    current_path = current_path.rstrip()
     logging.debug("current_path: {}".format(current_path))
     new_path = current_path + ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin"
     logging.debug("new_path: {}".format(new_path))
