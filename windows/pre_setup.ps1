@@ -16,7 +16,6 @@
 # under the License.
 
 
-<powershell>
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 function Check-Call {
@@ -41,4 +40,3 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/win
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/jenkins_slave.ps1 -OutFile jenkins_slave.ps1
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
 Write-Output "All Done"
-</powershell>
