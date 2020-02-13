@@ -147,8 +147,29 @@ def stack_exists(client, stack_name):
     return False
 
 
-def delete_stack(client, stack_name):
+def delete_stack_s3_content(client, stack_name) -> None:
+    stacks = client.describe_stacks(StackName=stack_name)
+    #In [24]: stack['Stacks'][0]['Outputs'][0]
+    #Out[24]:
+    #{'OutputKey': 'ArtifactBucket',
+    # 'OutputValue': 'cdpipeline-s3bucket-1o1kj4z50v7gv',
+    # 'Description': 'Bucket for build artifacts'}
+    buckets = []
+    for output in stacks['Stacks'][0]['Outputs']:
+        if output['OutputKey'] == 'ArtifactBucket':
+            buckets.append(output['OutputValue'])
+    for bucket in buckets:
+        logging.info("Nuking bucket: %s", bucket)
+        s3 = boto3.resource('s3')
+        b = s3.Bucket(bucket)
+        b.objects.all().delete()
+
+
+def delete_stack(client, stack_name) -> None:
     if stack_exists(client, stack_name):
+        # Delete S3 buckets and contents, otherwise stack deletion can't delete non-empty buckets.
+        # rm -rf /
+        delete_stack_s3_content(client, stack_name)
         client.delete_stack(StackName=stack_name)
         waiter = client.get_waiter('stack_delete_complete')
         logging.info("Waiting for stack deletion...")
