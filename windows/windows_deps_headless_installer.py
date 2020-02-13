@@ -53,7 +53,6 @@ DEPS = {
         'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
         'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
         'perl': 'http://strawberryperl.com/download/5.30.1.1/strawberry-perl-5.30.1.1-64bit.msi',
-        'ninja': 'https://github.com/ninja-build/ninja/releases/download/v1.10.0/ninja-win.zip',
         # This installation of CMake breaks windows PATH when executing vcvars, installing from
         # chocolatey from powershell instead.
         'cmake': 'https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-win64-x64.msi'
@@ -237,14 +236,6 @@ def install_perl():
     logging.info("Perl install complete")
 
 
-def install_ninja():
-    logging.info("Installing Ninja")
-    local_file = download(DEPS['ninja'])
-    with zipfile.ZipFile(local_file, 'r') as zip:
-        zip.extractall("C:\\Program Files\\ninja-win")
-    logging.info("Ninja Install complete")
-
-
 def install_openblas():
     logging.info("Installing OpenBLAS")
     local_file = download(DEPS['openblas'])
@@ -342,7 +333,7 @@ def add_paths():
     logging.info("Adding Windows Kits to PATH...")
     current_path = run_command("PowerShell (Get-Itemproperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name Path).Path")
     logging.debug("current_path: {}".format(current_path))
-    new_path = current_path + ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin;C:\\Program Files\\ninja-win;C:\\Strawberry\\perl\\bin"
+    new_path = current_path + ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin;C:\\Strawberry\\perl\\bin"
     logging.debug("new_path: {}".format(new_path))
     run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name Path -Value '" + new_path + "'")
 
@@ -387,7 +378,6 @@ def main():
     install_mkl()
     install_opencv()
     install_perl()
-    install_ninja()
     add_paths()
 
 
