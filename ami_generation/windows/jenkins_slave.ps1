@@ -34,8 +34,8 @@ function Check-Call {
 Set-ExecutionPolicy Bypass -Scope Process -Force
 $AutoConnectScript = 'C:\run-auto-connect.bat'
 $progressPreference = 'silentlyContinue'
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/slave-autoconnect.py -OutFile C:\slave-autoconnect.py
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/run-auto-connect.bat -OutFile $AutoConnectScript
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/slave-autoconnect.py -OutFile C:\slave-autoconnect.py
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/run-auto-connect.bat -OutFile $AutoConnectScript
 $trigger = New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
 $action = New-ScheduledTaskAction -Execute $AutoConnectScript
 $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
