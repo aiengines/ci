@@ -35,11 +35,19 @@ Expand-Archive -LiteralPath .\windows.zip
 Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile ffox.exe
 .\ffox.exe /n /s
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Install-Module -Force OpenSSHUtils -Scope AllUsers
+Set-Service -Name ssh-agent -StartupType 'Automatic'
+Set-Service -Name sshd -StartupType 'Automatic'
+Start-Service ssh-agent
+Start-Service sshd
 </powershell>
 ```
 
 #### Add storage
-200Gig storage 
+200Gig storage
 #### Security Group
 Select an existing security group
 Choose both : AWS RDP and AWS SSH
