@@ -113,7 +113,7 @@ def retry(target_exception, tries=4, delay_s=1, backoff=2):
 
 
 @retry((ValueError, OSError, HTTPError), tries=5, delay_s=2, backoff=5)
-def download(url, dest=None, progress=True) -> str:
+def download(url, dest=None, progress=False) -> str:
     from urllib.request import urlopen
     from urllib.parse import (urlparse, urlunparse)
     import progressbar
