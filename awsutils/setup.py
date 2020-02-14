@@ -27,5 +27,3 @@ setup(
     install_requires=requirements,
     python_requires=MIN_PYTHON_VERSION
 )
-
-

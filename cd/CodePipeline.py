@@ -28,34 +28,35 @@ import awsutils
 
 from troposphere.codebuild import Project, Environment, Artifacts, Source
 
+
 def create_pipeline_template(config) -> Template:
     t = Template()
 
     github_token = t.add_parameter(Parameter(
         "GithubToken",
-        Type = "String",
-        Default = os.environ.get('GH_TOKEN', '')
+        Type="String",
+        Default=os.environ.get('GH_TOKEN', '')
     ))
 
     github_owner = t.add_parameter(Parameter(
         "GitHubOwner",
-        Type = 'String',
-        Default = 'aiengines',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='aiengines',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     github_repo = t.add_parameter(Parameter(
         "GitHubRepo",
-        Type = 'String',
-        Default = 'ci',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='ci',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     github_branch = t.add_parameter(Parameter(
         "GitHubBranch",
-        Type = 'String',
-        Default = 'master',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='master',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     artifact_store_s3_bucket = t.add_resource(Bucket(
@@ -64,33 +65,32 @@ def create_pipeline_template(config) -> Template:
 
     cloudformationrole = t.add_resource(Role(
         "CloudformationRole",
-        AssumeRolePolicyDocument = PolicyDocument(
-            Version = "2012-10-17",
-            Statement = [
+        AssumeRolePolicyDocument=PolicyDocument(
+            Version="2012-10-17",
+            Statement=[
                 Statement(
-                    Effect = Allow,
-                    Action = [AssumeRole],
-                    Principal = Principal("Service", ["cloudformation.amazonaws.com"])
+                    Effect=Allow,
+                    Action=[AssumeRole],
+                    Principal=Principal("Service", ["cloudformation.amazonaws.com"])
                 )
             ]
         ),
-        ManagedPolicyArns = ['arn:aws:iam::aws:policy/AdministratorAccess']
+        ManagedPolicyArns=['arn:aws:iam::aws:policy/AdministratorAccess']
     ))
 
     codepipelinerole = t.add_resource(Role(
         "CodePipelineRole",
-        AssumeRolePolicyDocument = PolicyDocument(
-            Statement = [
+        AssumeRolePolicyDocument=PolicyDocument(
+            Statement=[
                 Statement(
-                    Effect = Allow,
-                    Action = [AssumeRole],
-                    Principal = Principal("Service", ["codepipeline.amazonaws.com"])
+                    Effect=Allow,
+                    Action=[AssumeRole],
+                    Principal=Principal("Service", ["codepipeline.amazonaws.com"])
                 )
             ]
         ),
-        ManagedPolicyArns = ['arn:aws:iam::aws:policy/AdministratorAccess']
+        ManagedPolicyArns=['arn:aws:iam::aws:policy/AdministratorAccess']
     ))
-
 
     linux_environment = Environment(
         ComputeType='BUILD_GENERAL1_LARGE',
@@ -121,83 +121,82 @@ def create_pipeline_template(config) -> Template:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-source.html
     cb_project = t.add_resource(Project(
         "CDBuild",
-        Name = "CDBuild",
-        Description = 'Continous pipeline',
-        Artifacts = Artifacts(Type='CODEPIPELINE'),
-        Environment = linux_environment,
-        Source = Source(Type='CODEPIPELINE', BuildSpec="cd/buildspec.yml"),
-        ServiceRole = Ref(codebuild_role)
+        Name="CDBuild",
+        Description='Continous pipeline',
+        Artifacts=Artifacts(Type='CODEPIPELINE'),
+        Environment=linux_environment,
+        Source=Source(Type='CODEPIPELINE', BuildSpec="cd/buildspec.yml"),
+        ServiceRole=Ref(codebuild_role)
     ))
-
 
     pipeline = t.add_resource(Pipeline(
         "CDPipeline",
-        ArtifactStore = ArtifactStore(
-            Type = "S3",
-            Location = Ref(artifact_store_s3_bucket)
+        ArtifactStore=ArtifactStore(
+            Type="S3",
+            Location=Ref(artifact_store_s3_bucket)
         ),
-#        DisableInboundStageTransitions = [
-#            DisableInboundStageTransitions(
-#                StageName = "Release",
-#                Reason = "Disabling the transition until "
-#                       "integration tests are completed"
-#            )
-#        ],
-        RestartExecutionOnUpdate = True,
-        RoleArn = codepipelinerole.GetAtt('Arn'),
-        Stages = [
+        #        DisableInboundStageTransitions = [
+        #            DisableInboundStageTransitions(
+        #                StageName = "Release",
+        #                Reason = "Disabling the transition until "
+        #                       "integration tests are completed"
+        #            )
+        #        ],
+        RestartExecutionOnUpdate=True,
+        RoleArn=codepipelinerole.GetAtt('Arn'),
+        Stages=[
             Stages(
-                Name = "Source",
-                Actions = [
+                Name="Source",
+                Actions=[
                     Actions(
-                        Name = "SourceAction",
-                        ActionTypeId = ActionTypeId(
-                            Category = "Source",
-                            Owner = "ThirdParty",
-                            Provider = "GitHub",
-                            Version = "1",
+                        Name="SourceAction",
+                        ActionTypeId=ActionTypeId(
+                            Category="Source",
+                            Owner="ThirdParty",
+                            Provider="GitHub",
+                            Version="1",
                         ),
-                        OutputArtifacts = [
+                        OutputArtifacts=[
                             OutputArtifacts(
-                                Name = "GitHubSourceCode"
+                                Name="GitHubSourceCode"
                             )
                         ],
-                        Configuration = {
+                        Configuration={
                             'Owner': Ref(github_owner),
                             'Repo': Ref(github_repo),
                             'Branch': Ref(github_branch),
                             'PollForSourceChanges': False,
                             'OAuthToken': Ref(github_token)
                         },
-                        RunOrder = "1"
+                        RunOrder="1"
                     )
                 ]
             ),
             Stages(
-                Name = "Build",
-                Actions = [
+                Name="Build",
+                Actions=[
                     Actions(
-                        Name = "LinuxBuild",
-                        ActionTypeId = ActionTypeId(
-                            Category = "Build",
-                            Owner = "AWS",
-                            Provider = "CodeBuild",
-                            Version = "1"
+                        Name="LinuxBuild",
+                        ActionTypeId=ActionTypeId(
+                            Category="Build",
+                            Owner="AWS",
+                            Provider="CodeBuild",
+                            Version="1"
                         ),
-                        InputArtifacts = [
+                        InputArtifacts=[
                             InputArtifacts(
-                                Name = "GitHubSourceCode"
+                                Name="GitHubSourceCode"
                             )
                         ],
-                        OutputArtifacts = [
+                        OutputArtifacts=[
                             OutputArtifacts(
-                                Name = "LinuxBuild"
+                                Name="LinuxBuild"
                             )
                         ],
-                        Configuration = {
+                        Configuration={
                             'ProjectName': Ref(cb_project),
                         },
-                        RunOrder = "1"
+                        RunOrder="1"
                     ),
                 ]
             ),
@@ -207,19 +206,19 @@ def create_pipeline_template(config) -> Template:
 
     t.add_resource(Webhook(
         "GitHubWebHook",
-        Authentication = 'GITHUB_HMAC',
-        AuthenticationConfiguration = WebhookAuthConfiguration(
-            SecretToken = Ref(github_token)
+        Authentication='GITHUB_HMAC',
+        AuthenticationConfiguration=WebhookAuthConfiguration(
+            SecretToken=Ref(github_token)
         ),
-        Filters = [
+        Filters=[
             WebhookFilterRule(
-                JsonPath = '$.ref',
-                MatchEquals = 'refs/heads/{Branch}'
+                JsonPath='$.ref',
+                MatchEquals='refs/heads/{Branch}'
             )
         ],
-        TargetPipeline = Ref(pipeline),
-        TargetAction = 'Source',
-        TargetPipelineVersion = pipeline.GetAtt('Version')
+        TargetPipeline=Ref(pipeline),
+        TargetAction='Source',
+        TargetPipelineVersion=pipeline.GetAtt('Version')
     ))
 
     t.add_output(Output(
@@ -229,6 +228,7 @@ def create_pipeline_template(config) -> Template:
     ))
 
     return t
+
 
 def parameters_interactive(template: Template) -> List[dict]:
     """
@@ -251,7 +251,6 @@ def parameters_interactive(template: Template) -> List[dict]:
     return parameter_values
 
 
-
 def config_logging():
     import time
     logging.getLogger().setLevel(os.environ.get('LOGLEVEL', logging.INFO))
@@ -267,7 +266,7 @@ def script_name() -> str:
 
 def config_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Code pipeline",
-        epilog="""
+                                     epilog="""
 """)
     parser.add_argument('config', nargs='?', help='config file', default='config.yaml')
     return parser
@@ -292,13 +291,14 @@ def main():
 
     param_values_dict = parameters_interactive(template)
     tparams = dict(
-            TemplateBody = template.to_yaml(),
-            Parameters = param_values_dict,
-            Capabilities=['CAPABILITY_IAM'],
-            #OnFailure = 'DELETE',
+        TemplateBody=template.to_yaml(),
+        Parameters=param_values_dict,
+        Capabilities=['CAPABILITY_IAM'],
+        #OnFailure = 'DELETE',
     )
     awsutils.instantiate_CF_template(template, config['stack_name'], **tparams)
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

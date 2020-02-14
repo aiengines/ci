@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 # Copyright 2018 Amazon.com, Inc. and its affiliates. All Rights Reserved.
-# 
+#
 # Licensed under the Amazon Software License (the "License").
 # You may not use this file except in compliance with the License.
 # A copy of the License is located at
-# 
+#
 # http://aws.amazon.com/asl/
 #
 # or in the "license" file accompanying this file. This file is distributed
@@ -97,6 +97,7 @@ def generate_node_label():
 
     return labelPlatform
 
+
 def rename_instance(name: str):
     logging.info('Renaming instance to {}'.format(name))
     response = urllib.request.urlopen("http://169.254.169.254/latest/dynamic/instance-identity/document")
@@ -140,7 +141,7 @@ def get_num_gpus() -> int:
     Gets the number of GPUs available on the host (depends on nvidia-smi).
     :return: The number of GPUs on the system.
     """
-    #if shutil.which("nvidia-smi") is None:
+    # if shutil.which("nvidia-smi") is None:
     nvidia_smi_path = get_nvidia_smi_path()
     if nvidia_smi_path is None or shutil.which(nvidia_smi_path) is None:
         logging.warning("Couldn't find nvidia-smi, therefore we assume no GPUs are available.")
@@ -170,7 +171,7 @@ def get_nvidia_smi_path() -> str:
     return None
 
 
-def read_master_urls(args) -> (str,str):
+def read_master_urls(args) -> (str, str):
     try:
         if args.master is not None:
             master = args.master
@@ -236,28 +237,28 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         parser = argparse.ArgumentParser()
         parser.add_argument('-m', '--master',
-            help='URL of jenkins master',
-            # default='http://jenkins.mxnet-ci.amazon-ml.com',
-            type=str)
+                            help='URL of jenkins master',
+                            # default='http://jenkins.mxnet-ci.amazon-ml.com',
+                            type=str)
 
         parser.add_argument('-mf', '--master-file',
-            help='File containing URL of jenkins master',
-            # default='/home/jenkins_slave/jenkins_master_url',
-            type=str)
+                            help='File containing URL of jenkins master',
+                            # default='/home/jenkins_slave/jenkins_master_url',
+                            type=str)
 
         parser.add_argument('-mp', '--master-private',
-            help='Private URL of jenkins master',
-            # default='http://jenkins-priv.mxnet-ci.amazon-ml.com',
-            type=str)
+                            help='Private URL of jenkins master',
+                            # default='http://jenkins-priv.mxnet-ci.amazon-ml.com',
+                            type=str)
 
         parser.add_argument('-mpf', '--master-private-file',
-            help='File containing private URL of jenkins master',
-            # default='/home/jenkins_slave/jenkins_master_private_url',
-            type=str)
+                            help='File containing private URL of jenkins master',
+                            # default='/home/jenkins_slave/jenkins_master_private_url',
+                            type=str)
 
         parser.add_argument('-snf', '--slave-name-file',
-            help='File containing name of the slave slot',
-            type=str)
+                            help='File containing name of the slave slot',
+                            type=str)
 
         args = parser.parse_args()
 

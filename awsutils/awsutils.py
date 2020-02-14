@@ -21,6 +21,7 @@ from typing import List, Dict, Sequence
 def get_root() -> str:
     """Get root folder (tagged with .root file)"""
     curpath = os.path.abspath(os.path.dirname(__file__))
+
     def is_root(path: str) -> bool:
         return os.path.exists(os.path.join(path, ".root"))
     while not is_root(curpath):
@@ -69,7 +70,7 @@ def wait_port_open(server, port, timeout=None):
                 sleep_s = 1
 
         except socket.gaierror as err:
-            logging.debug("gaierror %s",err)
+            logging.debug("gaierror %s", err)
             return False
 
         except socket.timeout as err:
@@ -94,8 +95,10 @@ def remember_cwd():
     Restore current directory when exiting context
     '''
     curdir = os.getcwd()
-    try: yield
-    finally: os.chdir(curdir)
+    try:
+        yield
+    finally:
+        os.chdir(curdir)
 
 
 def retry(target_exception, tries=4, delay_s=1, backoff=2):
@@ -150,8 +153,8 @@ def stack_exists(client, stack_name):
 def delete_stack_s3_content(client, stack_name) -> None:
     stacks = client.describe_stacks(StackName=stack_name)
     #In [24]: stack['Stacks'][0]['Outputs'][0]
-    #Out[24]:
-    #{'OutputKey': 'ArtifactBucket',
+    # Out[24]:
+    # {'OutputKey': 'ArtifactBucket',
     # 'OutputValue': 'cdpipeline-s3bucket-1o1kj4z50v7gv',
     # 'Description': 'Bucket for build artifacts'}
     buckets = []
@@ -178,19 +181,18 @@ def delete_stack(client, stack_name) -> None:
         waiter.wait(StackName=stack_name)
 
 
-
-def instantiate_CF_template(template: Template, stack_name: str="unnamed", **params) -> None:
+def instantiate_CF_template(template: Template, stack_name: str = "unnamed", **params) -> None:
     client = boto3.client('cloudformation')
     logging.info(f"Validating stack {stack_name}")
     tpl_yaml = template.to_yaml()
     validate_result = client.validate_template(TemplateBody=tpl_yaml)
     logging.info(f"Creating stack {stack_name}")
     stack_params = dict(
-            StackName = stack_name,
-            TemplateBody = tpl_yaml,
-            Parameters = [],
-            Capabilities=['CAPABILITY_IAM'],
-            #OnFailure = 'DELETE',
+        StackName=stack_name,
+        TemplateBody=tpl_yaml,
+        Parameters=[],
+        Capabilities=['CAPABILITY_IAM'],
+        #OnFailure = 'DELETE',
     )
     stack_params.update(params)
     if stack_exists(client, stack_name):
@@ -218,14 +220,14 @@ def instantiate_CF_template(template: Template, stack_name: str="unnamed", **par
         waiter.wait(StackName=stack_name)
 
 
-
 def get_ubuntu_ami(region, release, arch='amd64', instance_type='hvm:ebs-ssd'):
     # https://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
     # https://cloud-images.ubuntu.com/locator/ec2/  -> Js console -> Network
     ssl._create_default_https_context = ssl._create_unverified_context
-    ami_list = yaml.safe_load(urllib.request.urlopen("https://cloud-images.ubuntu.com/locator/ec2/releasesTable").read())['aaData']
+    ami_list = yaml.safe_load(urllib.request.urlopen(
+        "https://cloud-images.ubuntu.com/locator/ec2/releasesTable").read())['aaData']
     # Items look like:
-    #['us-east-1',
+    # ['us-east-1',
     # 'artful',
     # '17.10',
     # 'amd64',
@@ -233,10 +235,12 @@ def get_ubuntu_ami(region, release, arch='amd64', instance_type='hvm:ebs-ssd'):
     # '20180621',
     # '<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-71e2b40e">ami-71e2b40e</a>',
     # 'hvm']
-    res = [x for x in ami_list if x[0] == region and x[2].startswith(release) and x[3] == arch and x[4] == instance_type]
+    res = [x for x in ami_list if x[0] == region and x[2].startswith(
+        release) and x[3] == arch and x[4] == instance_type]
     ami_link = res[0][6]
     ami_id = re.sub('<[^<]+?>', '', ami_link)
     return ami_id
+
 
 def wait_port_open(server, port, timeout=None):
     """ Wait for network service to appear
@@ -276,7 +280,7 @@ def wait_port_open(server, port, timeout=None):
                 sleep_s = 1
 
         except socket.gaierror as err:
-            logging.debug("gaierror %s",err)
+            logging.debug("gaierror %s", err)
             return False
 
         except socket.timeout as err:
@@ -293,7 +297,6 @@ def wait_port_open(server, port, timeout=None):
             s.close()
             logging.info("wait_port_open: port %s:%s is open", server, port)
             return True
-
 
 
 def create_security_groups(ec2_client, ec2_resource):
@@ -315,6 +318,7 @@ def create_security_groups(ec2_client, ec2_resource):
         ])
     return [sec_group_name]
 
+
 def wait_for_instances(instances):
     """
     Wait until the given boto3 instance objects are running
@@ -333,16 +337,18 @@ def wait_for_instances(instances):
     for i in instances:
         i.reload()
 
+
 def parse_args():
     with open('launch_template.yml', 'r') as f:
         launch_template = yaml.load(f)
     parser = argparse.ArgumentParser(description="launcher")
-    parser.add_argument('-n', '--instance-name', default=launch_template.get('instance-name', "{}-{}".format('worker', getpass.getuser())))
+    parser.add_argument('-n', '--instance-name', default=launch_template.get('instance-name',
+                                                                             "{}-{}".format('worker', getpass.getuser())))
     parser.add_argument('-i', '--instance-type', default=launch_template['instance-type'])
     parser.add_argument('--ubuntu', default=launch_template.get('ubuntu'))
     parser.add_argument('-u', '--username',
                         default=launch_template.get('username', getpass.getuser()))
-    ssh_key = launch_template.get('ssh-key', os.path.join(expanduser("~"),".ssh","id_rsa.pub"))
+    ssh_key = launch_template.get('ssh-key', os.path.join(expanduser("~"), ".ssh", "id_rsa.pub"))
     parser.add_argument('--ssh-key-file', default=ssh_key)
     parser.add_argument('--ssh-key-name', default="ssh_{}_key".format(getpass.getuser()))
     parser.add_argument('-a', '--ami', default=launch_template['ami'])
@@ -356,22 +362,22 @@ def read_file(file):
         return f.read()
 
 
-def ansible_provision_host(host: str, username: str, playbook: str ='playbook.yml') -> None:
+def ansible_provision_host(host: str, username: str, playbook: str = 'playbook.yml') -> None:
     """
     Ansible provisioning
     """
     assert host
     assert username
-    ansible_cmd= [
+    ansible_cmd = [
         "ansible-playbook",
-        #"-v", # verbose
+        # "-v", # verbose
         "-u", "ubuntu",
         "-i", "{},".format(host),
         playbook,
         "--extra-vars", "user_name={}".format(username)]
 
     logging.info("Executing: '{}'".format(' '.join(ansible_cmd)))
-    os.environ['ANSIBLE_HOST_KEY_CHECKING']='False'
+    os.environ['ANSIBLE_HOST_KEY_CHECKING'] = 'False'
     check_call(ansible_cmd)
 
 
@@ -386,7 +392,7 @@ def yaml_ansible_inventory(hosts, **vars):
     return yaml.dump(invdata)
 
 
-def create_inventory(file: str='inventory.yaml') -> None:
+def create_inventory(file: str = 'inventory.yaml') -> None:
     """Create inventory file from running tagged instances"""
     logging.info(f"Creating inventory file: '{file}'")
     if os.path.exists(file):
@@ -400,7 +406,7 @@ def create_inventory(file: str='inventory.yaml') -> None:
         fh.write(yaml_ansible_inventory(hostnames, ansible_user='ubuntu', user_name='piotr'))
 
 
-def create_hosts_file(file: str='hosts.txt') -> None:
+def create_hosts_file(file: str = 'hosts.txt') -> None:
     """Create a hosts file with ip addresses from the cluster nodes for mpirun / horovod"""
     logging.info(f"Creating hosts file: '{file}'")
     if os.path.exists(file):
@@ -416,7 +422,7 @@ def create_hosts_file(file: str='hosts.txt') -> None:
 def get_tagged_instances(*tags):
     ec2_resource = boto3.resource('ec2')
     filters = []
-    for k,v in tags:
+    for k, v in tags:
         filters.append({'Name': f'tag:{k}', 'Values': [v]})
     filters.append({'Name': 'instance-state-name', 'Values': ['pending', 'starting', 'running']})
     return ec2_resource.instances.filter(Filters=filters)
@@ -442,24 +448,19 @@ def assemble_userdata(*userdata_files):
 
 
 def create_instances(
-    ec2: object,
-    tag: str,
-    instance_type: str,
-    keyName: str,
-    ami: str,
-    security_groups: List[str],
-    userdata_files: List[Sequence[str]],
-    create_instance_kwargs: Dict,
-    instanceCount: int = 1):
+        ec2: object,
+        tag: str,
+        instance_type: str,
+        keyName: str,
+        ami: str,
+        security_groups: List[str],
+        userdata_files: List[Sequence[str]],
+        create_instance_kwargs: Dict,
+        instanceCount: int = 1):
 
     logging.info("Launching {} instances".format(instanceCount))
-    kwargs = { 'ImageId': ami
-        , 'MinCount': instanceCount
-        , 'MaxCount': instanceCount
-        , 'KeyName': keyName
-        , 'InstanceType': instance_type
-        , 'UserData': assemble_userdata(*userdata_files).as_string()
-    }
+    kwargs = {'ImageId': ami, 'MinCount': instanceCount, 'MaxCount': instanceCount, 'KeyName': keyName, 'InstanceType': instance_type, 'UserData': assemble_userdata(*userdata_files).as_string()
+              }
     if 'NetworkInterfaces' in create_instance_kwargs:
         for iface in create_instance_kwargs['NetworkInterfaces']:
             iface['Groups'] = security_groups
@@ -468,9 +469,8 @@ def create_instances(
     kwargs.update(create_instance_kwargs)
     instances = ec2.create_instances(**kwargs)
     ec2.create_tags(
-        Resources = [instance.id for instance in instances]
-        , Tags = [
-          {'Key': 'Name', 'Value': tag}
+        Resources=[instance.id for instance in instances], Tags=[
+            {'Key': 'Name', 'Value': tag}
         ]
     )
 
@@ -478,11 +478,11 @@ def create_instances(
 
 
 def create_image(
-    ec2: object,
-    instance_id: str,
-    image_name: str,
-    image_description: str,
-    **kwargs) -> str:
+        ec2: object,
+        instance_id: str,
+        image_name: str,
+        image_description: str,
+        **kwargs) -> str:
     """Trigger creation of AMI image and return its id"""
     kwargs.update(dict(
         InstanceId=instance_id,
@@ -510,4 +510,3 @@ def create_ssh_anywhere_sg(ec2_client, ec2_resource):
              'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}
         ])
     return [sg.id]
-

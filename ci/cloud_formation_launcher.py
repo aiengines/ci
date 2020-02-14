@@ -28,51 +28,51 @@ import awsutils
 
 from troposphere.codebuild import Project, Environment, Artifacts, Source
 
+
 def create_template(config) -> Template:
     t = Template()
 
     github_token = t.add_parameter(Parameter(
         "GithubToken",
-        Type = "String",
-        Default = os.environ.get('GH_TOKEN', '')
+        Type="String",
+        Default=os.environ.get('GH_TOKEN', '')
     ))
 
     github_owner = t.add_parameter(Parameter(
         "GitHubOwner",
-        Type = 'String',
-        Default = 'aiengines',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='aiengines',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     github_repo = t.add_parameter(Parameter(
         "GitHubRepo",
-        Type = 'String',
-        Default = 'ci',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='ci',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     github_branch = t.add_parameter(Parameter(
         "GitHubBranch",
-        Type = 'String',
-        Default = 'master',
-        AllowedPattern = "[A-Za-z0-9-_]+"
+        Type='String',
+        Default='master',
+        AllowedPattern="[A-Za-z0-9-_]+"
     ))
 
     cloudformationrole = t.add_resource(Role(
         "CloudformationRole",
-        AssumeRolePolicyDocument = PolicyDocument(
-            Version = "2012-10-17",
-            Statement = [
+        AssumeRolePolicyDocument=PolicyDocument(
+            Version="2012-10-17",
+            Statement=[
                 Statement(
-                    Effect = Allow,
-                    Action = [AssumeRole],
-                    Principal = Principal("Service", ["cloudformation.amazonaws.com"])
+                    Effect=Allow,
+                    Action=[AssumeRole],
+                    Principal=Principal("Service", ["cloudformation.amazonaws.com"])
                 )
             ]
         ),
-        ManagedPolicyArns = ['arn:aws:iam::aws:policy/AdministratorAccess']
+        ManagedPolicyArns=['arn:aws:iam::aws:policy/AdministratorAccess']
     ))
-
 
     linux_environment = Environment(
         ComputeType='BUILD_GENERAL1_LARGE',
@@ -103,20 +103,21 @@ def create_template(config) -> Template:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-source.html
     cb_project = t.add_resource(Project(
         "aienginesCI",
-        Name = "aienginesCI",
-        Description = 'Continous pipeline',
-        Artifacts = Artifacts(Type='NO_ARTIFACTS'),
-        Environment = linux_environment,
-        Source = Source(
+        Name="aienginesCI",
+        Description='Continous pipeline',
+        Artifacts=Artifacts(Type='NO_ARTIFACTS'),
+        Environment=linux_environment,
+        Source=Source(
             Type='GITHUB',
             ReportBuildStatus=True,
             GitCloneDepth=0,
             Location='https://github.com/aiengines/ci',
             BuildSpec="ci/buildspec.yml"),
-        ServiceRole = Ref(codebuild_role)
+        ServiceRole=Ref(codebuild_role)
     ))
 
     return t
+
 
 def parameters_interactive(template: Template) -> List[dict]:
     """
@@ -139,7 +140,6 @@ def parameters_interactive(template: Template) -> List[dict]:
     return parameter_values
 
 
-
 def config_logging():
     import time
     logging.getLogger().setLevel(os.environ.get('LOGLEVEL', logging.INFO))
@@ -155,7 +155,7 @@ def script_name() -> str:
 
 def config_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Code pipeline",
-        epilog="""
+                                     epilog="""
 """)
     parser.add_argument('config', nargs='?', help='config file', default='config.yaml')
     return parser
@@ -180,13 +180,14 @@ def main():
 
     param_values_dict = parameters_interactive(template)
     tparams = dict(
-            TemplateBody = template.to_yaml(),
-            Parameters = param_values_dict,
-            Capabilities=['CAPABILITY_IAM'],
-            #OnFailure = 'DELETE',
+        TemplateBody=template.to_yaml(),
+        Parameters=param_values_dict,
+        Capabilities=['CAPABILITY_IAM'],
+        #OnFailure = 'DELETE',
     )
     awsutils.instantiate_CF_template(template, config['stack_name'], **tparams)
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())
