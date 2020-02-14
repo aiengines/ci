@@ -39,6 +39,7 @@ from subprocess import check_output, check_call
 import re
 import sys
 import urllib.request
+import contextlib
 
 import ssl
 
@@ -58,6 +59,18 @@ DEPS = {
 }
 
 DEFAULT_SUBPROCESS_TIMEOUT = 3600
+
+
+contextlib.contextmanager
+def remember_cwd():
+    '''
+    Restore current directory when exiting context
+    '''
+    curdir = os.getcwd()
+    try:
+        yield
+    finally:
+        os.chdir(curdir)
 
 
 def retry(target_exception, tries=4, delay_s=1, backoff=2):
@@ -280,11 +293,13 @@ def install_gpu_packages(force=False):
 
 def install_nvdriver():
     logging.info("Installing Nvidia Display Drivers...")
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(prefix='nvidia drivers') as tmpdir:
         local_file = download(DEPS['nvdriver'])
         with zipfile.ZipFile(local_file, 'r') as zip:
             zip.extractall(tmpdir)
-        check_call(tmpdir + "\\setup.exe /n /s /noeula /nofinish")
+        with remember_cwd():
+            os.chdir(tmpdir)
+            check_call(".\setup.exe -noreboot -clean -noeula -nofinish -passive")
     logging.info("NVidia install complete")
 
 
@@ -293,7 +308,7 @@ def install_cuda():
     logging.info("Installing CUDA 9.2 and Patches...")
     cuda_9_2_file_path = download(
         'https://developer.nvidia.com/compute/cuda/9.2/Prod2/network_installers2/cuda_9.2.148_win10_network')
-    run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_file_path,
+    check_call("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_file_path,
                                                                              cuda_9_2_file_path.split('\\')[-1]), shell=True)
     cuda_9_2_file_path = cuda_9_2_file_path + '.exe'
     run_command(cuda_9_2_file_path
