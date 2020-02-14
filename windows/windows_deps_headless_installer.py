@@ -61,7 +61,7 @@ DEPS = {
 DEFAULT_SUBPROCESS_TIMEOUT = 3600
 
 
-contextlib.contextmanager
+@contextlib.contextmanager
 def remember_cwd():
     '''
     Restore current directory when exiting context
