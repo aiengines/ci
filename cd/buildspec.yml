@@ -9,4 +9,4 @@ phases:
       - pip3 install -e awsutils
   build:
     commands:
-      - ls
+      - cd/check_style.py
