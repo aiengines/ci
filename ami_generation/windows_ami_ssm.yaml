@@ -41,7 +41,7 @@ parameters:
   SetupScriptSourceInfo:
     type: String
     description: "Source type info"
-    default: '{"owner":"aiengines", "repository":"ci", "path":"windows"}'
+    default: '{"owner":"aiengines", "repository":"ci", "path":"ami_generation/windows/"}'
   SetupScriptEntry:
     type: String
     description: "Source script entry command"
@@ -469,9 +469,9 @@ mainSteps:
       #- Set-ExecutionPolicy Bypass -Scope Process -Force
       - "{{SetupScriptEntry}}"
       executionTimeout: '10800'
-    CloudWatchOutputConfig:
-      CloudWatchLogGroupName: SetupScriptCommand
-      CloudWatchOutputEnabled: true
+#    CloudWatchOutputConfig:
+#      CloudWatchLogGroupName: SetupScriptCommand
+#      CloudWatchOutputEnabled: true
 #- name: DownloadJenkinsSlaveAutoconnectPython
 #  action: aws:runCommand
 #  inputs:
