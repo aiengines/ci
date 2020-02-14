@@ -41,7 +41,7 @@ parameters:
   SetupScriptSourceInfo:
     type: String
     description: "Source type info"
-    default: '{"owner":"aiengines", "repository":"ci", "getOptions": "branch:dev", "path":"ami_generation/windows/"}'
+    default: '{"owner":"aiengines", "repository":"ci", "getOptions": "branch:master", "path":"ami_generation/windows/"}'
   SetupScriptEntry:
     type: String
     description: "Source script entry command"
