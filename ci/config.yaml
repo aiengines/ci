@@ -1,0 +1,4 @@
+# Config for Cloud Formation Stack
+aws_profile: ci-dev
+aws_region: us-west-2
+stack_name: AienginesCI 
