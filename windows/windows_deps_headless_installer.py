@@ -268,13 +268,22 @@ def install_cudnn():
     logging.info("cuDNN install complete")
 
 
+def install_gpu_packages(force=False):
+    if has_gpu() or force:
+        logging.info("GPU detected")
+        install_nvdriver()
+        install_cuda()
+        install_cudnn()
+
+
+
 def install_nvdriver():
     logging.info("Installing Nvidia Display Drivers...")
     with tempfile.TemporaryDirectory() as tmpdir:
         local_file = download(DEPS['nvdriver'])
         with zipfile.ZipFile(local_file, 'r') as zip:
             zip.extractall(tmpdir)
-        run_command(tmpdir + "\\setup.exe /n /s /noeula /nofinish")
+        check_call(tmpdir + "\\setup.exe /n /s /noeula /nofinish")
     logging.info("NVidia install complete")
 
 
@@ -357,11 +366,8 @@ def main():
                         default=False,
 			action='store_true')
     args = parser.parse_args()
-    if args.gpu or has_gpu():
-        logging.info("GPU detected")
-        install_nvdriver()
-        install_cuda()
-        install_cudnn()
+    if args.gpu or has_gpu()
+        install_gpu_packages(force=True)
     else:
         logging.info("GPU environment skipped")
     install_vs()
