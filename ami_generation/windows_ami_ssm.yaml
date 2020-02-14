@@ -472,6 +472,8 @@ mainSteps:
 #    CloudWatchOutputConfig:
 #      CloudWatchLogGroupName: SetupScriptCommand
 #      CloudWatchOutputEnabled: true
+    OutputS3BucketName: windows-post-install
+    OutputS3KeyPrefix: ssm_logs
 #- name: DownloadJenkinsSlaveAutoconnectPython
 #  action: aws:runCommand
 #  inputs:
