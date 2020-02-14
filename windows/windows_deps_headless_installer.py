@@ -366,7 +366,7 @@ def main():
                         default=False,
 			action='store_true')
     args = parser.parse_args()
-    if args.gpu or has_gpu()
+    if args.gpu or has_gpu():
         install_gpu_packages(force=True)
     else:
         logging.info("GPU environment skipped")
