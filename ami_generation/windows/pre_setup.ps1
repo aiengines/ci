@@ -34,9 +34,9 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 
 Check-Call { cd C:\Users\Administrator }
 $progressPreference = 'silentlyContinue'
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/setup.ps1 -OutFile setup.ps1
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/windows_deps_headless_installer.py -OutFile windows_deps_headless_installer.py
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/requirements.txt -OutFile requirements.txt
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/jenkins_slave.ps1 -OutFile jenkins_slave.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/setup.ps1 -OutFile setup.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/windows_deps_headless_installer.py -OutFile windows_deps_headless_installer.py
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/requirements.txt -OutFile requirements.txt
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/jenkins_slave.ps1 -OutFile jenkins_slave.ps1
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
 Write-Output "All Done"
