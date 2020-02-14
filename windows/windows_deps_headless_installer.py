@@ -183,7 +183,7 @@ def install_vs():
     vs_file_path = download('https://aka.ms/eac464')
     run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(vs_file_path, vs_file_path.split('\\')[-1]), shell=True)
     vs_file_path = vs_file_path + '.exe'
-    run_command(vs_file_path + \
+    check_call(vs_file_path + \
         ' --add Microsoft.VisualStudio.Workload.ManagedDesktop' \
         ' --add Microsoft.VisualStudio.Workload.NetCoreTools' \
         ' --add Microsoft.VisualStudio.Workload.NetWeb' \
