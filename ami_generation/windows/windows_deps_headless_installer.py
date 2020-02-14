@@ -35,7 +35,7 @@ import zipfile
 from time import sleep
 from urllib.error import HTTPError
 import logging
-from subprocess import check_output, check_call
+from subprocess import check_output, check_call, call
 import re
 import sys
 import urllib.request
@@ -197,7 +197,7 @@ def install_vs():
     run_command("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(vs_file_path,
                                                                              vs_file_path.split('\\')[-1]), shell=True)
     vs_file_path = vs_file_path + '.exe'
-    check_call(vs_file_path +
+    ret = call(vs_file_path +
                ' --add Microsoft.VisualStudio.Workload.ManagedDesktop'
                ' --add Microsoft.VisualStudio.Workload.NetCoreTools'
                ' --add Microsoft.VisualStudio.Workload.NetWeb'
@@ -218,6 +218,12 @@ def install_vs():
                ' --passive'
                ' --norestart'
                )
+
+    if ret == 3010 or ret == 0:
+        # 3010 is restart required
+        logging.info("VS install successful.")
+    else:
+        raise RuntimeError("VS failed to install, exit status {}".format(ret))
     # Workaround for --wait sometimes ignoring the subprocesses doing component installs
 
     def vs_still_installing():
@@ -311,7 +317,7 @@ def install_cuda():
     check_call("PowerShell Rename-Item -Path {} -NewName \"{}.exe\"".format(cuda_9_2_file_path,
                                                                              cuda_9_2_file_path.split('\\')[-1]), shell=True)
     cuda_9_2_file_path = cuda_9_2_file_path + '.exe'
-    run_command(cuda_9_2_file_path
+    check_call(cuda_9_2_file_path
                 + ' -s nvcc_9.2'
                 + ' cuobjdump_9.2'
                 + ' nvprune_9.2'
