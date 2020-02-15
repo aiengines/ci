@@ -13,6 +13,14 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+"""
+Uses the following ec2 tags to connect to the jenkins master:
+
+ci:master_private_url
+ci:master_url
+ci:node_name
+"""
+
 import platform
 import logging
 import logging.config
