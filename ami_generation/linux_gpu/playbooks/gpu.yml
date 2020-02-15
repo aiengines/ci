@@ -37,7 +37,7 @@
       apt_repository:
         repo: deb https://nvidia.github.io/nvidia-container-runtime/ubuntu18.04/$(ARCH) /
 
-    - name: nvidia-docker
+    - name: nvidia-docker repository
       apt_repository:
         repo: deb https://nvidia.github.io/nvidia-docker/ubuntu18.04/$(ARCH) /
 
@@ -50,7 +50,7 @@
           - cuda
           - libcudnn7
           - libcudnn7-dev
-          - nvidia-cuda-toolkit
+          #- nvidia-cuda-toolkit
 #          - libnccl2
 #          - libnccl-dev
  
