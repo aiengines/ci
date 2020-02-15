@@ -29,7 +29,7 @@ function Check-Call {
         exit $lastexitcode
     }
 }
-Check-Call { setx PATH "$($env:path);c:\Program Files\CMake\bin;C:\Program Files\opencv\x64\vc15\bin;" /m }
+Check-Call { setx PATH "$($env:path);c:\Program Files\CMake\bin;" /m }
 Set-ExecutionPolicy Bypass -Scope Process -Force
 Invoke-WebRequest -Uri https://chocolatey.org/install.ps1 -OutFile install.ps1
 ./install.ps1
