@@ -454,13 +454,21 @@ def create_instances(
         keyName: str,
         ami: str,
         security_groups: List[str],
-        userdata_files: List[Sequence[str]],
+        userdata,
         create_instance_kwargs: Dict,
         instanceCount: int = 1):
 
     logging.info("Launching {} instances".format(instanceCount))
-    kwargs = {'ImageId': ami, 'MinCount': instanceCount, 'MaxCount': instanceCount, 'KeyName': keyName, 'InstanceType': instance_type, 'UserData': assemble_userdata(*userdata_files).as_string()
-              }
+    kwargs = {'ImageId': ami, 'MinCount': instanceCount, 'MaxCount': instanceCount, 'KeyName': keyName, 'InstanceType': instance_type}
+
+    if type(userdata) is list and len(userdata) > 1:
+        kwargs['UserData'] = assemble_userdata(*userdata).as_string()
+    elif type(userdata) is list and len(userdata) == 1:
+        with open(userdata[0], 'r') as f:
+            kwargs['UserData'] = f.read()
+    elif type(userdata_files) is str:
+        kwargs['UserData'] = userdata
+
     if 'NetworkInterfaces' in create_instance_kwargs:
         for iface in create_instance_kwargs['NetworkInterfaces']:
             iface['Groups'] = security_groups

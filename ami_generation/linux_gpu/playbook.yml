@@ -82,4 +82,4 @@
 # Other playbooks
 #
 - import_playbook: playbooks/docker.yml
-#- import_playbook: playbooks/gpu.yml
+- import_playbook: playbooks/gpu.yml
