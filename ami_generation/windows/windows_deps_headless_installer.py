@@ -53,6 +53,8 @@ DEPS = {
     'opencv': 'https://windows-post-install.s3-us-west-2.amazonaws.com/opencv-windows-4.1.2-vc14_vc15.zip',
     'cudnn': 'https://windows-post-install.s3-us-west-2.amazonaws.com/cudnn-9.2-windows10-x64-v7.4.2.24.zip',
     'nvdriver': 'https://windows-post-install.s3-us-west-2.amazonaws.com/nvidia_display_drivers_398.75_server2016.zip',
+    'perl': 'http://strawberryperl.com/download/5.30.1.1/strawberry-perl-5.30.1.1-64bit.msi',
+    'clang': 'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/LLVM-9.0.1-win64.exe',
     # This installation of CMake breaks windows PATH when executing vcvars, installing from
     # chocolatey from powershell instead.
     'cmake': 'https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-win64-x64.msi'
@@ -248,6 +250,22 @@ def install_cmake():
     logging.info("CMAKE install complete")
 
 
+def install_perl():
+    logging.info("Installing Perl")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        perl_file_path = download(DEPS['perl'], tmpdir)
+        check_call(['msiexec ', '/n', '/passive', '/i', perl_file_path])
+    logging.info("Perl install complete")
+
+
+def install_clang():
+    logging.info("Installing Clang")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        clang_file_path = download(DEPS['clang'], tmpdir)
+        run_command(clang_file_path + " /S /D=C:\\Program Files\\LLVM")
+    logging.info("Clang install complete")
+
+
 def install_openblas():
     logging.info("Installing OpenBLAS")
     local_file = download(DEPS['openblas'])
@@ -360,7 +378,7 @@ def add_paths():
     current_path = current_path.rstrip()
     logging.debug("current_path: {}".format(current_path))
     new_path = current_path + \
-        ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin"
+        ";C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.16299.0\\x86;C:\\Program Files\\OpenBLAS-windows-v0_2_19\\bin;C:\\Program Files\\LLVM\\bin"
     logging.debug("new_path: {}".format(new_path))
     run_command("PowerShell Set-ItemProperty -path 'hklm:\\system\\currentcontrolset\\control\\session manager\\environment' -Name Path -Value '" + new_path + "'")
 
@@ -400,6 +418,8 @@ def main():
     install_openblas()
     install_mkl()
     install_opencv()
+    install_perl()
+    install_clang()
     add_paths()
 
 
