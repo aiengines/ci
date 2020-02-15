@@ -127,12 +127,12 @@ def _provision(ec2_resource, ec2_client, launch_template) -> None:
                 ansible_provision_host(host, launch_template['username'], launch_template['playbook'])
             logging.info("All done, the following hosts are now available: %s", host)
         instance = next(iter(instances))
-        logging.info("Imaging the first instance: %s", instance.instance_id)
-        ami_id = _create_ami_image(ec2_client, instance.instance_id, launch_template['image-name'],
-                          launch_template['image-description'], launch_template)
-        ami_waiter = ec2_client.get_waiter('image_available')
-        logging.info("Waiting for AMI id %s (this might take a long time)", ami_id)
-        ami_waiter.wait(ImageIds=[ami_id], WaiterConfig={'Delay': 10, 'MaxAttempts': 180})
+#        logging.info("Imaging the first instance: %s", instance.instance_id)
+#        ami_id = _create_ami_image(ec2_client, instance.instance_id, launch_template['image-name'],
+#                          launch_template['image-description'], launch_template)
+#        ami_waiter = ec2_client.get_waiter('image_available')
+#        logging.info("Waiting for AMI id %s (this might take a long time)", ami_id)
+#        ami_waiter.wait(ImageIds=[ami_id], WaiterConfig={'Delay': 10, 'MaxAttempts': 180})
 
     finally:
         if not launch_template['keep-instance']:
