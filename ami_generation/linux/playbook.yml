@@ -1,0 +1,85 @@
+--- # Ansible playbook to provision instances for myself
+- name: provisioning with Ansible
+  hosts: all
+  gather_facts: no
+  become: true
+  become_user: root
+  tasks:
+
+    - apt_repository:
+        repo: ppa:fish-shell/release-3
+	- name: Update all packages to the latest version
+      apt:
+        update_cache: yes
+		upgrade: dist
+    - apt:
+        name:
+            - vim-nox
+            - cgdb
+            - fish
+            - vim-nox
+            - nmon
+            - silversearcher-ag
+            - tree
+            - git
+            - openssh-client
+            - bwm-ng
+            - htop
+#            - openjdk-9-jdk-headless
+            - python3-virtualenv
+            - python3-pip
+            - mc
+            - links
+            - lynx
+            - iptables-persistent
+            - nmap
+            - build-essential
+#            - cmake
+            - ninja-build
+            - curl
+            - libatlas-base-dev
+            - libjemalloc-dev
+            - liblapack-dev
+            - libopenblas-dev
+            - libopencv-dev
+            - libzmq3-dev
+            - software-properties-common
+            - sudo
+            - unzip
+            - wget
+            - sysstat
+            - awscli
+            - ccache
+            - virtualenv
+            - python3-setuptools
+            - python-setuptools
+            - libcurl4-openssl-dev
+            - libtool
+            - autoconf
+    - apt:
+        state: absent
+        name:
+            - btrfs-progs
+            - btrfs-tools
+
+    - name: Allow attaching gdb
+      lineinfile:
+        dest: /etc/sysctl.d/10-ptrace.conf
+        state: present
+        regexp: '^kernel.yama.ptrace_scope'
+        line: 'kernel.yama.ptrace_scope = 0'
+
+
+    - name: adjust ccache max size to 50G
+      command: ccache -M50G
+
+    - name: Add user {{ user_name }} 
+      user:
+        name: "{{ user_name }}"
+        shell: /bin/bash
+
+
+# Other playbooks
+#
+- import_playbook: playbooks/docker.yml
+- import_playbook: playbooks/gpu.yml
