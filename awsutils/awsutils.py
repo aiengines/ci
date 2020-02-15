@@ -14,6 +14,9 @@ import urllib.request
 import re
 import ssl
 import sys
+import json
+import urllib.request
+import urllib.error
 from subprocess import check_call
 from typing import List, Dict, Sequence
 
@@ -30,6 +33,60 @@ def get_root() -> str:
             raise RuntimeError("Got to the root and couldn't find a parent folder with .root")
         curpath = parent
     return curpath
+
+
+def instance_identity() -> Dict:
+    response = urllib.request.urlopen("http://169.254.169.254/latest/dynamic/instance-identity/document")
+    instance_info = json.loads(response.read().decode('utf-8'))
+    return instance_info
+
+
+def own_instance_id() -> str:
+    return instance_identity()['instanceId']
+
+
+def rename_instance(name: str):
+    try:
+        logging.info('Renaming instance to {}'.format(name))
+        nfo = instance_identity()
+        instance_id_ = nfo['instanceId']
+        ec2 = boto3.resource('ec2', region_name=nfo['region'])
+        ec2.create_tags(
+            DryRun=False,
+            Resources=[
+                instance_id_
+            ],
+            Tags=[
+                {
+                    'Key': 'Name',
+                    'Value': name
+                },
+            ]
+        )
+    except Exception as e:
+        logging.exception('rename_instance')
+
+
+def ec2_tag_own(key, value):
+    try:
+        nfo = instance_identity()
+        instance_id_ = nfo['instanceId']
+        ec2 = boto3.resource('ec2', region_name=nfo['region'])
+        ec2.create_tags(
+            DryRun=False,
+            Resources=[
+                instance_id_
+            ],
+            Tags=[
+                {
+                    'Key': key,
+                    'Value': value
+                },
+            ]
+        )
+    except Exception as e:
+        logging.exception('ec2_tag')
+
 
 
 def wait_port_open(server, port, timeout=None):
