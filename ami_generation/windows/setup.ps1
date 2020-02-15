@@ -53,7 +53,7 @@ Check-Call { C:\ProgramData\chocolatey\choco install mingw -y -r --no-progress }
 Check-Call { C:\ProgramData\chocolatey\choco install javaruntime -y -r --no-progress }
 
 # update path after all software is installed
-refreshenv
-Check-Call { setx PATH "$($env:path);c:\Program Files\Git\bin;c:\Program Files\CMake\bin;" /m }
+#refreshenv
+#Check-Call { setx PATH "$($env:path);c:\Program Files\Git\bin;c:\Program Files\CMake\bin;" /m }
 
 Write-Output "End"
