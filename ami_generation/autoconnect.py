@@ -355,7 +355,6 @@ def config_logging():
 
 
 def main():
-    config_logging()
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--foreground', action='store_true',
                         help="don't daemonize")
@@ -363,6 +362,7 @@ def main():
     if not args.foreground and platform.system() != 'Windows':
         daemonize()
 
+    config_logging()
     autoconnect()
     rename_instance('error-too-many-attempts')
     logging.fatal('Could connect to master - too many attempts')
