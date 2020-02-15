@@ -3,3 +3,4 @@ boto3
 python-jenkins
 progressbar2
 watchtower
+awscli
