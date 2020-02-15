@@ -29,6 +29,7 @@ function Check-Call {
         exit $lastexitcode
     }
 }
+Check-Call { setx PATH "$($env:path);c:\Program Files\CMake\bin;" /m }
 Set-ExecutionPolicy Bypass -Scope Process -Force
 Invoke-WebRequest -Uri https://chocolatey.org/install.ps1 -OutFile install.ps1
 ./install.ps1
@@ -53,7 +54,6 @@ Check-Call { C:\Python37\python  windows_deps_headless_installer.py }
 Check-Call { C:\ProgramData\chocolatey\choco install javaruntime -y -r --no-progress }
 
 # update path after all software is installed
-#refreshenv
-#Check-Call { setx PATH "$($env:path);c:\Program Files\Git\bin;c:\Program Files\CMake\bin;" /m }
+refreshenv
 
 Write-Output "End"
