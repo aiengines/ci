@@ -49,7 +49,7 @@ Check-Call { C:\Python37\python  windows_deps_headless_installer.py }
 
 # Other software
 #Check-Call { C:\ProgramData\chocolatey\choco install jom -y }
-Check-Call { C:\ProgramData\chocolatey\choco install mingw -y -r --no-progress }
+#Check-Call { C:\ProgramData\chocolatey\choco install mingw -y -r --no-progress }
 Check-Call { C:\ProgramData\chocolatey\choco install javaruntime -y -r --no-progress }
 
 # update path after all software is installed
