@@ -343,13 +343,15 @@ def script_name() -> str:
 
 
 def config_logging():
-    logging_conf = os.getenv('LOGGING_CONF', 'logging.conf')
-    if os.path.isfile(logging_conf):
-        logging.config.fileConfig(logging_conf)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-        logging.warning("logging.conf not found when configuring logging, logging not configured")
-        logging.basicConfig(format='{}: %(asctime)-15s %(message)s'.format(script_name()))
+    import time
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    fh = logging.FileHandler('autoconnect.log')
+    fmt = '{}: %(asctime)sZ %(levelname)s %(message)s'.format(script_name())
+    logging.basicConfig(format=fmt)
+    fh.setFormatter(logging.Formatter(fmt=fmt))
+    logging.Formatter.converter = time.gmtime
+    root.addHandler(fh)
 
 
 def main():
