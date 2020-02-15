@@ -25,7 +25,7 @@
             - openssh-client
             - bwm-ng
             - htop
-#            - openjdk-9-jdk-headless
+            - openjdk-11-jre-headless
             - python3-virtualenv
             - python3-pip
             - mc
@@ -78,14 +78,32 @@
         name: "{{ user_name }}"
         shell: /bin/bash
 
+    - name: Install python-jenkins
+      pip:
+        name: python-jenkins
+        executable: pip3
+
+    - name: Install boto3
+      pip:
+        name: boto3
+        executable: pip3
+
+    - name: Install watchtower
+      pip:
+        name: watchtower
+        executable: pip3
+
+    - name: Install awscli
+      pip:
+        name: awscli
+        executable: pip3
+
     - name: Wait for userdata to finish
       wait_for:
         path: /root/userdata_complete
         state: present
         timeout: 1200
         sleep: 3
-
-
 
 # Other playbooks
 #
