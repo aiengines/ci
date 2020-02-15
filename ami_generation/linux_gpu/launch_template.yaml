@@ -12,7 +12,8 @@ instance-type: "g3s.xlarge"
 #instance-type: "p3.2xlarge"
 #instance-type: "p3dn.24xlarge"
 instance-name: paquito_ami
-username: jenkins_user 
+username: jenkins_user
+image-name: linux cpu
 playbook: linux/playbook.yml
 image-description: linux AMI
 user-data:

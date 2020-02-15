@@ -65,7 +65,7 @@ def _create_ami_image(
     return id
 
 
-def _provision(ec2_resource, ec2_client, launch_template, args) -> None:
+def _provision(ec2_resource, ec2_client, launch_template) -> None:
     try:
         logging.info("Creating security groups")
         security_groups = create_ssh_anywhere_sg(ec2_client, ec2_resource)
@@ -76,9 +76,9 @@ def _provision(ec2_resource, ec2_client, launch_template, args) -> None:
 
 
     try:
-        ec2_client.import_key_pair(KeyName=args.ssh_key_name, PublicKeyMaterial=read_file(args.ssh_key_file))
+        ec2_client.import_key_pair(KeyName=launch_template['ssh-key-name'], PublicKeyMaterial=read_file(launch_template['ssh-key-file']))
     except botocore.exceptions.ClientError as e:
-        logging.info("Continuing: Key pair '%s' might already exist", args.ssh_key_name)
+        logging.info("Continuing: Key pair '%s' might already exist", launch_template['ssh-key-name'])
 
     aws_account = boto3.client('sts').get_caller_identity()['Account']
     logging.info("""
@@ -92,19 +92,22 @@ def _provision(ec2_resource, ec2_client, launch_template, args) -> None:
     Playbook: %s
     User Data: %s
 
-    """, aws_account, args.instance_type, boto3.session.Session().region_name, args.ami, args.ssh_key_name,
-         args.ssh_key_file, security_groups, args.playbook, args.user_data)
+    """, aws_account,
+         launch_template['instance-type'], boto3.session.Session().region_name,
+         launch_template['ami'], launch_template['ssh-key-name'],
+         launch_template['ssh-key-file'], security_groups, launch_template.get('playbook'),
+         launch_template.get('user-data'))
 
 
     logging.info("creating instances")
     instances = create_instances(
         ec2_resource,
-        args.instance_name,
-        args.instance_type,
-        args.ssh_key_name,
-        args.ami,
+        launch_template['instance-name'],
+        launch_template['instance-type'],
+        launch_template['ssh-key-name'],
+        launch_template['ami'],
         security_groups,
-        args.user_data,
+        launch_template.get('user-data'),
         launch_template.get('CreateInstanceArgs', {}))
     try:
         wait_for_instances(instances)
@@ -120,78 +123,43 @@ def _provision(ec2_resource, ec2_client, launch_template, args) -> None:
             host = instance.public_dns_name
             logging.info("Waiting for host {}".format(host))
             wait_port_open(host, 22, 300)
-            ansible_provision_host(host, args.username, args.playbook)
+            if 'playbook' in launch_template:
+                ansible_provision_host(host, launch_template['username'], launch_template['playbook'])
             logging.info("All done, the following hosts are now available: %s", host)
         instance = next(iter(instances))
         logging.info("Imaging the first instance: %s", instance.instance_id)
-        ami_id = _create_ami_image(ec2_client, instance.instance_id, args.image_name,
-                          args.image_description, launch_template)
+        ami_id = _create_ami_image(ec2_client, instance.instance_id, launch_template['image-name'],
+                          launch_template['image-description'], launch_template)
         ami_waiter = ec2_client.get_waiter('image_available')
         logging.info("Waiting for AMI id %s (this might take a long time)", ami_id)
         ami_waiter.wait(ImageIds=[ami_id], WaiterConfig={'Delay': 10, 'MaxAttempts': 180})
 
     finally:
-        if not args.keep_instance:
+        if not launch_template['keep-instance']:
             logging.info("Terminate instances")
             for instance in instances:
                 instance.stop()
 
 
-def parse_args(**kwargs):
+def parse_args():
     parser = argparse.ArgumentParser(description="Paquito AMI packer")
-    parser.add_argument('-n', '--instance-name', default=kwargs.get('instance-name',
-                        "{}-{}".format('paquito', getpass.getuser())))
-    parser.add_argument('-i', '--instance-type', default=kwargs.get('instance-type'))
-    parser.add_argument('--ubuntu', default=kwargs.get('ubuntu'),
-                        help="Specify an ubuntu release like 18.04 instead of an ami")
-    parser.add_argument('-u', '--username',
-                        default=kwargs.get('username', getpass.getuser()))
-    ssh_key = kwargs.get('ssh-key', os.path.join(expanduser("~"),".ssh","id_rsa.pub"))
+    parser.add_argument('-u', '--username', default=getpass.getuser())
+    ssh_key = os.path.join(expanduser("~"),".ssh","id_rsa.pub")
     parser.add_argument('--ssh-key-file', default=ssh_key)
     parser.add_argument('--ssh-key-name', default="ssh_{}_key".format(getpass.getuser()))
-    parser.add_argument('-a', '--ami', default=kwargs.get('ami'))
-    parser.add_argument('-p', '--playbook', default=kwargs.get('playbook'),
-                        help="Ansible playbook to use for provisioning")
-    parser.add_argument('-m', '--image-name', default=kwargs.get('image-name'))
-    parser.add_argument('--user-data', nargs="*",
-                        help="Add a flat list of file and mime type pair files to use for user data"
-                        "for the instance")
     parser.add_argument('--keep-instance',
                         help="Keep instance on to diagnose problems",
                         action='store_true')
-    parser.add_argument('-d', '--image-description', default=kwargs.get('image-description'))
+
     parser.add_argument('--image-instance-id',
-                        help="Image an existing instance by instance id")
-    parser.add_argument('rest', nargs='*')
+        help="Image an existing instance by instance id")
+    parser.add_argument('-m', '--image-name')
+    parser.add_argument('-d', '--image-description')
+    parser.add_argument('--instance-type')
+
+    parser.add_argument('template', help='template file')
     args = parser.parse_args()
     return args
-
-
-def fill_args_interactive(args, current_region):
-    if not args.instance_name:
-        args.instance_name = input("instance_name: ")
-    if not args.instance_type:
-        args.instance_type = input("instance_type (https://www.ec2instances.info): ")
-
-    if not args.ssh_key_file:
-        args.ssh_key_file = input("(public) ssh_key_file: ")
-    assert os.path.isfile(args.ssh_key_file)
-
-    if not args.ubuntu:
-        args.ubuntu = input("ubuntu release (or specific 'ami'): ")
-
-    if args.ubuntu.startswith('ami') or args.ubuntu.startswith('aki'):
-        args.ami = ubuntu
-        args.ubuntu = None
-    else:
-        args.ami = get_ubuntu_ami(current_region, args.ubuntu)
-        logging.info("Automatic Ubuntu ami selection based on region %s and release %s -> AMI id: %s",
-                     current_region, args.ubuntu, args.ami)
-    if not args.username:
-        args.username = input("user name: ")
-
-    if not args.playbook:
-        args.playbook = input("Ansible playbook: ")
 
 
 def validate_args(args):
@@ -199,7 +167,6 @@ def validate_args(args):
     assert args.instance_type
     assert args.playbook and os.path.isfile(args.playbook)
     assert args.ssh_key_file and os.path.isfile(args.ssh_key_file)
-
 
 def script_name() -> str:
     """:returns: script name with leading paths removed"""
@@ -210,7 +177,7 @@ def config_logging():
     import time
     logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format='{}: %(asctime)sZ %(levelname)s %(message)s'.format(script_name()))
-    logging.Formatter.converter = time.gmtime 
+    logging.Formatter.converter = time.gmtime
 
 
 def main():
@@ -220,31 +187,28 @@ def main():
         return os.path.split(sys.argv[0])[1]
 
     config_logging()
+    args = parse_args()
 
     launch_template = dict()
-    launch_template_file = os.getenv('PAQUITO_TEMPLATE', AMI_LAUNCH_TEMPLATE_FILE)
-    if os.path.exists(launch_template_file):
-        with open(launch_template_file, 'r') as f:
+    if os.path.exists(args.template):
+        with open(args.template, 'r') as f:
             launch_template = yaml.load(f, Loader=yaml.SafeLoader)
 
-    args = parse_args(**launch_template)
+    for arg in ['username', 'ssh-key-file', 'ssh-key-name', 'keep-instance', 'instance-type']:
+        argname = arg.replace('-','_')
+        if not arg in launch_template and getattr(args, argname):
+            launch_template[arg] = getattr(args, argname)
 
-    if args.user_data:
-        args.user_data = group_user_data(args.user_data)
-    else:
-        args.user_data = launch_template['user-data']
-
-    fill_args_interactive(args, boto3.session.Session().region_name)
-    validate_args(args)
+    if 'ubuntu' in launch_template:
+        launch_template['ami'] = get_ubuntu_ami(boto3.session.Session().region_name, launch_template['ubuntu'])
 
     ec2_resource = boto3.resource('ec2')
     ec2_client = boto3.client('ec2')
 
     if args.image_instance_id:
-        _create_ami_image(ec2_client, args.image_instance_id, args.image_name, args.image_description,
-        launch_template, True)
+        _create_ami_image(ec2_client, args.image_instance_id, args.image_name, args.image_description, launch_template, True)
     else:
-        _provision(ec2_resource, ec2_client, launch_template, args)
+        _provision(ec2_resource, ec2_client, launch_template)
     return 0
 
 if __name__ == '__main__':

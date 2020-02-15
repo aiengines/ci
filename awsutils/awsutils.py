@@ -466,8 +466,10 @@ def create_instances(
     elif type(userdata) is list and len(userdata) == 1:
         with open(userdata[0], 'r') as f:
             kwargs['UserData'] = f.read()
-    elif type(userdata_files) is str:
+    elif type(userdata) is str:
         kwargs['UserData'] = userdata
+    else:
+        pass
 
     if 'NetworkInterfaces' in create_instance_kwargs:
         for iface in create_instance_kwargs['NetworkInterfaces']:

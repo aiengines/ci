@@ -78,8 +78,18 @@
         name: "{{ user_name }}"
         shell: /bin/bash
 
+    - name: Wait for userdata to finish
+      wait_for:
+        path: /root/userdata_complete
+        state: present
+        timeout: 1200
+        sleep: 3
+
+
 
 # Other playbooks
 #
 - import_playbook: playbooks/docker.yml
 - import_playbook: playbooks/gpu.yml
+#
+#
