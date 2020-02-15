@@ -15,8 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# Adds the jenkins slave autoconnect script as a service
-
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -25,21 +23,20 @@ function Check-Call {
         [scriptblock]$ScriptBlock
     )
     Write-Host "Executing $ScriptBlock"
+    $lastexitcode = 0
     & @ScriptBlock
     if (($lastexitcode -ne 0)) {
-	Write-Error "Execution failed with $lastexitcode"
+    Write-Error "Execution failed with $lastexitcode"
         exit $lastexitcode
     }
 }
 Set-ExecutionPolicy Bypass -Scope Process -Force
-$AutoConnectScript = 'C:\run-auto-connect.bat'
-$progressPreference = 'silentlyContinue'
-Invoke-WebRequest -Uri https://windows-post-install.s3-us-west-2.amazonaws.com/slave-autoconnect.py -OutFile C:\slave-autoconnect.py
-Invoke-WebRequest -Uri https://windows-post-install.s3-us-west-2.amazonaws.com/run-auto-connect.bat -OutFile $AutoConnectScript
-$trigger = New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
-$action = New-ScheduledTaskAction -Execute $AutoConnectScript
-$principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-Register-ScheduledTask "JenkinsAutoConnect" -Description "Connect to Jenkins at startup" -Action $action -Trigger $trigger -Principal $principal
 
-# trigger userdata processing on next boot so jenkins slave settings get written
-Check-Call { C:\ProgramData\Amazon\EC2-Windows\Launch\Scripts\InitializeInstance.ps1 –Schedule }
+Check-Call { cd C:\Users\Administrator }
+$progressPreference = 'silentlyContinue'
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/setup.ps1 -OutFile setup.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/windows_deps_headless_installer.py -OutFile windows_deps_headless_installer.py
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/requirements.txt -OutFile requirements.txt
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/ami_generation/windows/jenkins_slave.ps1 -OutFile jenkins_slave.ps1
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
+Write-Output "All Done"

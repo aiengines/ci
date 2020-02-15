@@ -17,11 +17,11 @@ from troposphere.s3 import Bucket
 from troposphere.ssm import Document
 from awacs.aws import Allow, Statement, Principal, PolicyDocument
 from awacs.sts import AssumeRole
-from util import *
 import argparse
 from typing import List
 from troposphere.codebuild import Project, Environment, Artifacts, Source
-
+import awsutils
+import yaml
 
 
 def create_pipeline_template(config) -> Template:
@@ -31,8 +31,8 @@ def create_pipeline_template(config) -> Template:
         #document_content = f.read()
         t.add_resource(Document(
             config['ssm_windows_ami_name'],
-            Content = document_content,
-            DocumentType = "Automation"))
+            Content=document_content,
+            DocumentType="Automation"))
     return t
 
 
@@ -72,7 +72,7 @@ def script_name() -> str:
 
 def config_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Infra pipeline",
-        epilog="""
+                                     epilog="""
 """)
     parser.add_argument('config', nargs='?', help='config file', default='ssm_ami_pipeline_config.yaml')
     return parser
@@ -93,17 +93,18 @@ def main():
     logging.info(f"Creating stack {config['stack_name']}")
 
     client = boto3.client('cloudformation')
-    delete_stack(client, config['stack_name'])
+    awsutils.delete_stack(client, config['stack_name'])
 
     param_values_dict = parameters_interactive(template)
     tparams = dict(
-            TemplateBody = template.to_yaml(),
-            Parameters = param_values_dict,
-            Capabilities=['CAPABILITY_IAM'],
-            #OnFailure = 'DELETE',
+        TemplateBody=template.to_yaml(),
+        Parameters=param_values_dict,
+        Capabilities=['CAPABILITY_IAM'],
+        #OnFailure = 'DELETE',
     )
-    instantiate_CF_template(template, config['stack_name'], **tparams)
+    awsutils.instantiate_CF_template(template, config['stack_name'], **tparams)
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

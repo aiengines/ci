@@ -41,7 +41,7 @@ parameters:
   SetupScriptSourceInfo:
     type: String
     description: "Source type info"
-    default: '{"owner":"aiengines", "repository":"ci", "path":"windows"}'
+    default: '{"owner":"aiengines", "repository":"ci", "getOptions": "branch:master", "path":"ami_generation/windows/"}'
   SetupScriptEntry:
     type: String
     description: "Source script entry command"
@@ -153,31 +153,32 @@ mainSteps:
     - DeviceName: "/dev/sda1"
       Ebs:
         VolumeSize: "{{ EBSVolumeSize }}"
-        VolumeType: gp2
+        VolumeType: io1
+        Iops: 6000
     SecurityGroupIds:
     - sg-2902ce56
     - sg-5d83d421
     KeyName: mxnet_edge_berlin_shared_rsa
-- name: OSCompatibilityCheck
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 7200
-  inputs:
-    DocumentName: AWS-RunPowerShellScript
-    InstanceIds:
-    - "{{LaunchInstance.InstanceIds}}"
-    Parameters:
-      executionTimeout: '7200'
-      commands:
-      - "[System.Version]$osversion = [System.Environment]::OSVersion.Version"
-      - if(($osversion.Major -eq 6 -and $osversion.Minor -ge 1) -or ($osversion.Major
-        -ge 10)) {
-      - "  Write-Host 'This OS is supported for use with this automation document.'"
-      - "} else {"
-      - "  Write-Host 'This OS is not supported for use with this automation document.'"
-      - "  exit -1"
-      - "}"
+#- name: OSCompatibilityCheck
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 7200
+#  inputs:
+#    DocumentName: AWS-RunPowerShellScript
+#    InstanceIds:
+#    - "{{LaunchInstance.InstanceIds}}"
+#    Parameters:
+#      executionTimeout: '7200'
+#      commands:
+#      - "[System.Version]$osversion = [System.Environment]::OSVersion.Version"
+#      - if(($osversion.Major -eq 6 -and $osversion.Minor -ge 1) -or ($osversion.Major
+#        -ge 10)) {
+#      - "  Write-Host 'This OS is supported for use with this automation document.'"
+#      - "} else {"
+#      - "  Write-Host 'This OS is not supported for use with this automation document.'"
+#      - "  exit -1"
+#      - "}"
 #- name: RunPreUpdateScript
 #  action: aws:runCommand
 #  maxAttempts: 3
@@ -368,88 +369,88 @@ mainSteps:
 #      - "}"
 #      - ''
 #      - Main
-- name: UpdateSSMAgent
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWS-UpdateSSMAgent
-    InstanceIds:
-    - "{{ LaunchInstance.InstanceIds }}"
-    Parameters:
-      allowDowngrade: 'false'
-- name: UpdateAWSPVDriver
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWS-ConfigureAWSPackage
-    InstanceIds:
-    - "{{LaunchInstance.InstanceIds}}"
-    Parameters:
-      name: AWSPVDriver
-      action: Install
-- name: UpdateAWSEnaNetworkDriver
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWS-ConfigureAWSPackage
-    InstanceIds:
-    - "{{LaunchInstance.InstanceIds}}"
-    Parameters:
-      name: AwsEnaNetworkDriver
-      action: Install
-- name: UpdateAWSNVMe
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWS-ConfigureAWSPackage
-    InstanceIds:
-    - "{{LaunchInstance.InstanceIds}}"
-    Parameters:
-      name: AWSNVMe
-      action: Install
-#- name: InstallWindowsUpdates
+#- name: UpdateSSMAgent
 #  action: aws:runCommand
 #  maxAttempts: 3
 #  onFailure: Abort
-#  timeoutSeconds: 14400
+#  timeoutSeconds: 600
 #  inputs:
-#    DocumentName: AWS-InstallWindowsUpdates
+#    DocumentName: AWS-UpdateSSMAgent
+#    InstanceIds:
+#    - "{{ aunchInstance.InstanceIds }}"
+#    Parameters:
+#      allowDowngrade: 'false'
+#- name: UpdateAWSPVDriver
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 600
+#  inputs:
+#    DocumentName: AWS-ConfigureAWSPackage
+#    InstanceIds:
+#    - "{{LaunchInstance.InstanceIds}}"
+#    Parameters:
+#      name: AWSPVDriver
+#      action: Install
+#- name: UpdateAWSEnaNetworkDriver
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 600
+#  inputs:
+#    DocumentName: AWS-ConfigureAWSPackage
+#    InstanceIds:
+#    - "{{LaunchInstance.InstanceIds}}"
+#    Parameters:
+#      name: AwsEnaNetworkDriver
+#      action: Install
+#- name: UpdateAWSNVMe
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 600
+#  inputs:
+#    DocumentName: AWS-ConfigureAWSPackage
+#    InstanceIds:
+#    - "{{LaunchInstance.InstanceIds}}"
+#    Parameters:
+#      name: AWSNVMe
+#      action: Install
+##- name: InstallWindowsUpdates
+##  action: aws:runCommand
+##  maxAttempts: 3
+##  onFailure: Abort
+##  timeoutSeconds: 14400
+##  inputs:
+##    DocumentName: AWS-InstallWindowsUpdates
+##    InstanceIds:
+##    - "{{ LaunchInstance.InstanceIds }}"
+##    Parameters:
+##      Action: Install
+##      IncludeKbs: "{{ IncludeKbs }}"
+##      ExcludeKbs: "{{ ExcludeKbs }}"
+##      Categories: "{{ Categories }}"
+##      SeverityLevels: "{{ SeverityLevels }}"
+##      PublishedDaysOld: "{{ PublishedDaysOld }}"
+##      PublishedDateAfter: "{{ PublishedDateAfter }}"
+##      PublishedDateBefore: "{{ PublishedDateBefore }}"
+#- name: DisableESC
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 600
+#  inputs:
+#    DocumentName: AWS-RunPowerShellScript
 #    InstanceIds:
 #    - "{{ LaunchInstance.InstanceIds }}"
 #    Parameters:
-#      Action: Install
-#      IncludeKbs: "{{ IncludeKbs }}"
-#      ExcludeKbs: "{{ ExcludeKbs }}"
-#      Categories: "{{ Categories }}"
-#      SeverityLevels: "{{ SeverityLevels }}"
-#      PublishedDaysOld: "{{ PublishedDaysOld }}"
-#      PublishedDateAfter: "{{ PublishedDateAfter }}"
-#      PublishedDateBefore: "{{ PublishedDateBefore }}"
-- name: DisableESC
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWS-RunPowerShellScript
-    InstanceIds:
-    - "{{ LaunchInstance.InstanceIds }}"
-    Parameters:
-      commands:
-      - "$AdminKey = 'HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}'"
-      - "$UserKey = 'HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}'"
-      - Set-ItemProperty -Path $AdminKey -Name 'IsInstalled' -Value 0
-      - Set-ItemProperty -Path $UserKey -Name 'IsInstalled' -Value 0
-      - Write-Host 'IE Enhanced Security Configuration (ESC) has been disabled.' -ForegroundColor
-        Green
+#      commands:
+#      - "$AdminKey = 'HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}'"
+#      - "$UserKey = 'HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}'"
+#      - Set-ItemProperty -Path $AdminKey -Name 'IsInstalled' -Value 0
+#      - Set-ItemProperty -Path $UserKey -Name 'IsInstalled' -Value 0
+#      - Write-Host 'IE Enhanced Security Configuration (ESC) has been disabled.' -ForegroundColor
+#        Green
 - name: SetupScript
   action: aws:runCommand
   maxAttempts: 1
@@ -468,63 +469,65 @@ mainSteps:
       #- Set-ExecutionPolicy Bypass -Scope Process -Force
       - "{{SetupScriptEntry}}"
       executionTimeout: '10800'
-    CloudWatchOutputConfig:
-      CloudWatchLogGroupName: SetupScriptCommand
-      CloudWatchOutputEnabled: true
-- name: DownloadJenkinsSlaveAutoconnectPython
-  action: aws:runCommand
-  inputs:
-    DocumentName: AWS-RunRemoteScript
-    InstanceIds:
-    - "{{ LaunchInstance.InstanceIds }}"
-    Parameters:
-      sourceType:
-      - S3
-      sourceInfo:
-      - '{"path": "{{ SlaveAutoconnectPythonS3 }}"}'
-      commandLine:
-      - Move-Item -Path .\{{ SlaveAutoconnectPythonKey }} -Destination {{ SlaveAutoconnectPythonPath }}
-- name: DownloadJenkinsSlaveAutoconnectBat
-  action: aws:runCommand
-  inputs:
-    DocumentName: AWS-RunRemoteScript
-    InstanceIds:
-    - "{{ LaunchInstance.InstanceIds }}"
-    Parameters:
-      sourceType:
-      - S3
-      sourceInfo:
-      - '{"path": "{{ SlaveAutoconnectBatS3 }}"}'
-      commandLine:
-      - Move-Item -Path .\{{ SlaveAutoconnectBatKey }} -Destination {{ SlaveAutoconnectBatPath }}
-- name: CreateAutoconnectJob
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 7200
-  inputs:
-    DocumentName: AWS-RunPowerShellScript
-    InstanceIds:
-    - "{{ LaunchInstance.InstanceIds }}"
-    Parameters:
-      commands:
-      - "$trigger = New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30"
-      - $action = New-ScheduledTaskAction -Execute "{{ SlaveAutoconnectBatPath }}"
-      - $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType
-        ServiceAccount -RunLevel Highest
-      - Register-ScheduledTask "JenkinsAutoConnect" -Description "Connect to Jenkins
-        at startup" -Action $action -Trigger $trigger -Principal $principal
-- name: RunSysprepGeneralize
-  action: aws:runCommand
-  maxAttempts: 3
-  onFailure: Abort
-  timeoutSeconds: 600
-  inputs:
-    DocumentName: AWSEC2-RunSysprep
-    InstanceIds:
-    - "{{LaunchInstance.InstanceIds}}"
-    Parameters:
-      Id: "{{automation:EXECUTION_ID}}"
+#    CloudWatchOutputConfig:
+#      CloudWatchLogGroupName: SetupScriptCommand
+#      CloudWatchOutputEnabled: true
+    OutputS3BucketName: windows-post-install
+    OutputS3KeyPrefix: ssm_logs
+#- name: DownloadJenkinsSlaveAutoconnectPython
+#  action: aws:runCommand
+#  inputs:
+#    DocumentName: AWS-RunRemoteScript
+#    InstanceIds:
+#    - "{{ LaunchInstance.InstanceIds }}"
+#    Parameters:
+#      sourceType:
+#      - S3
+#      sourceInfo:
+#      - '{"path": "{{ SlaveAutoconnectPythonS3 }}"}'
+#      commandLine:
+#      - Move-Item -Path .\{{ SlaveAutoconnectPythonKey }} -Destination {{ SlaveAutoconnectPythonPath }}
+#- name: DownloadJenkinsSlaveAutoconnectBat
+#  action: aws:runCommand
+#  inputs:
+#    DocumentName: AWS-RunRemoteScript
+#    InstanceIds:
+#    - "{{ LaunchInstance.InstanceIds }}"
+#    Parameters:
+#      sourceType:
+#      - S3
+#      sourceInfo:
+#      - '{"path": "{{ SlaveAutoconnectBatS3 }}"}'
+#      commandLine:
+#      - Move-Item -Path .\{{ SlaveAutoconnectBatKey }} -Destination {{ SlaveAutoconnectBatPath }}
+#- name: CreateAutoconnectJob
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 7200
+#  inputs:
+#    DocumentName: AWS-RunPowerShellScript
+#    InstanceIds:
+#    - "{{ LaunchInstance.InstanceIds }}"
+#    Parameters:
+#      commands:
+#      - "$trigger = New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30"
+#      - $action = New-ScheduledTaskAction -Execute "{{ SlaveAutoconnectBatPath }}"
+#      - $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType
+#        ServiceAccount -RunLevel Highest
+#      - Register-ScheduledTask "JenkinsAutoConnect" -Description "Connect to Jenkins
+#        at startup" -Action $action -Trigger $trigger -Principal $principal
+#- name: RunSysprepGeneralize
+#  action: aws:runCommand
+#  maxAttempts: 3
+#  onFailure: Abort
+#  timeoutSeconds: 600
+#  inputs:
+#    DocumentName: AWSEC2-RunSysprep
+#    InstanceIds:
+#    - "{{LaunchInstance.InstanceIds}}"
+#    Parameters:
+#      Id: "{{automation:EXECUTION_ID}}"
 - name: SecondStopInstance
   action: aws:changeInstanceState
   maxAttempts: 3

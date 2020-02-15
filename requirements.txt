@@ -4,3 +4,4 @@ python-jenkins
 progressbar2
 troposphere
 awacs
+flake8
