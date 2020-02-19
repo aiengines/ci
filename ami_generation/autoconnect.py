@@ -286,7 +286,7 @@ def config_signal_handlers() -> None:
     signal.signal(signal.SIGTTOU, signal.SIG_IGN)
 
 
-@retry(Exception)
+@retry(Exception, tries=2000)
 def autoconnect() -> None:
     cfg = config_from_ec2_tags()
     validate_config(cfg)
