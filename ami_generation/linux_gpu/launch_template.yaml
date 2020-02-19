@@ -3,6 +3,7 @@
 # https://cloud-images.ubuntu.com/locator/ec2/
 # ami: ami-09f0b8b3e41191524  # 16.04 eu-west-1 # leave empty to choose ami automatically
 #ami: ami-0d6c96e9451529ac0
+os-type: linux
 ubuntu: "18.04 LTS"
 instance-type: "g3s.xlarge"
 #instance-type: "c5d.18xlarge"

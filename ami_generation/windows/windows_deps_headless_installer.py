@@ -307,12 +307,10 @@ def install_cudnn():
     logging.info("cuDNN install complete")
 
 
-def install_gpu_packages(force=False):
+def install_gpu_driver(force=False):
     if has_gpu() or force:
         logging.info("GPU detected")
         install_nvdriver()
-        install_cuda()
-        install_cudnn()
 
 
 def install_nvdriver():
@@ -410,10 +408,14 @@ def main():
                         action='store_true')
     args = parser.parse_args()
     if args.gpu or has_gpu():
-        install_gpu_packages(force=True)
+        install_gpu_driver(force=True)
     else:
         logging.info("GPU environment skipped")
+    # needed for compilation with nvcc
+    install_cuda()
+    install_cudnn()
     install_vs()
+    # installed from choco
     # install_cmake()
     install_openblas()
     install_mkl()

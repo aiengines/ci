@@ -127,15 +127,16 @@ def _provision(ec2_resource, ec2_client, launch_template) -> None:
                 ansible_provision_host(host, launch_template['username'], launch_template['playbook'])
             logging.info("All done, the following hosts are now available: %s", host)
         instance = next(iter(instances))
-#        logging.info("Imaging the first instance: %s", instance.instance_id)
-#        ami_id = _create_ami_image(ec2_client, instance.instance_id, launch_template['image-name'],
-#                          launch_template['image-description'], launch_template)
-#        ami_waiter = ec2_client.get_waiter('image_available')
-#        logging.info("Waiting for AMI id %s (this might take a long time)", ami_id)
-#        ami_waiter.wait(ImageIds=[ami_id], WaiterConfig={'Delay': 10, 'MaxAttempts': 180})
+        if launch_template['os-type'].lower() == 'linux':
+            logging.info("Imaging the first instance: %s", instance.instance_id)
+            ami_id = _create_ami_image(ec2_client, instance.instance_id, launch_template['image-name'],
+                              launch_template['image-description'], launch_template)
+            ami_waiter = ec2_client.get_waiter('image_available')
+            logging.info("Waiting for AMI id %s (this might take a long time)", ami_id)
+            ami_waiter.wait(ImageIds=[ami_id], WaiterConfig={'Delay': 10, 'MaxAttempts': 180})
 
     finally:
-        if not launch_template['keep-instance']:
+        if launch_template.get('keep-instance',False):
             logging.info("Terminate instances")
             for instance in instances:
                 instance.stop()
@@ -189,7 +190,9 @@ def main():
     config_logging()
     args = parse_args()
 
-    launch_template = dict()
+    launch_template = {
+        'keep-instance': False
+    }
     if os.path.exists(args.template):
         with open(args.template, 'r') as f:
             launch_template = yaml.load(f, Loader=yaml.SafeLoader)
