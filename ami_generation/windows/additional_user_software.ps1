@@ -41,11 +41,14 @@ Set-Service -Name ssh-agent -StartupType 'Automatic'
 Set-Service -Name sshd -StartupType 'Automatic'	
 Start-Service ssh-agent	
 Start-Service sshd	
-Check-Call { cd C:\Users\Administrator }	Check-Call { cd C:\Users\Administrator }
-$progressPreference = 'silentlyContinue'	$progressPreference = 'silentlyContinue'
-Invoke-WebRequest -Uri https://cygwin.com/setup-x86_64.exe -OutFile setup-x86_64.exe	Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/setup.ps1 -OutFile setup.ps1
-Check-Call { .\setup-x86_64.exe --site http://cygwin.mirror.constant.com --quiet-mode --root "C:\cygwin64" --local-package-dir "C:\Users\Administrator" --verbose --prune-install --packages openssh,git,rsync,vim,python3 }	Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/windows_deps_headless_installer.py -OutFile windows_deps_headless_installer.py
-Invoke-WebRequest -Uri https://windows-post-install.s3-us-west-2.amazonaws.com/windows.zip -OutFile windows.zip	Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/requirements.txt -OutFile requirements.txt
+Check-Call { cd C:\Users\Administrator }
+$progressPreference = 'silentlyContinue'
+Invoke-WebRequest -Uri https://cygwin.com/setup-x86_64.exe -OutFile setup-x86_64.exe
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/setup.ps1 -OutFile setup.ps1
+Check-Call { .\setup-x86_64.exe --site http://cygwin.mirror.constant.com --quiet-mode --root "C:\cygwin64" --local-package-dir "C:\Users\Administrator" --verbose --prune-install --packages openssh,git,rsync,vim,python3 }
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/windows_deps_headless_installer.py -OutFile windows_deps_headless_installer.py
+Invoke-WebRequest -Uri https://windows-post-install.s3-us-west-2.amazonaws.com/windows.zip -OutFile windows.zip
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/requirements.txt -OutFile requirements.txt
 Expand-Archive -LiteralPath .\windows.zip	Invoke-WebRequest -Uri https://raw.githubusercontent.com/aiengines/ci/master/windows/jenkins_slave.ps1 -OutFile jenkins_slave.ps1
 Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile ffox.exe	
 Check-Call { .\ffox.exe /n /s }
