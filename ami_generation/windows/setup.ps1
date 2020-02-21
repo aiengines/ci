@@ -31,6 +31,9 @@ function Check-Call {
 }
 Check-Call { setx PATH "$($env:path);c:\Program Files\CMake\bin;C:\Program Files\opencv\x64\vc15\bin;" /m }
 Set-ExecutionPolicy Bypass -Scope Process -Force
+$progressPreference = 'silentlyContinue'
+Invoke-WebRequest -Uri https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.4/npp.7.8.4.Installer.exe -OutFile npp.7.8.4.Installer.exe
+Check-Call { .\npp.7.8.4.Installer.exe /S }
 Invoke-WebRequest -Uri https://chocolatey.org/install.ps1 -OutFile install.ps1
 ./install.ps1
 #Check-Call { C:\ProgramData\chocolatey\choco install python2 -y --no-progress }
