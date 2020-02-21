@@ -98,6 +98,12 @@
         name: awscli
         executable: pip3
 
+    - name: Install joblib
+      pip:
+        name: joblib
+        executable: pip3
+
+
     - name: Wait for userdata to finish
       wait_for:
         path: /root/userdata_complete

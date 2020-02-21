@@ -100,8 +100,8 @@
 
     - name: Install joblib
       pip:
-        name: awscli
-        executable: joblib
+        name: joblib
+        executable: pip3
 
 
     - name: Wait for userdata to finish
