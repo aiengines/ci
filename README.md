@@ -76,7 +76,7 @@ git clone -b windows_builds --recursive https://github.com/larroy/mxnet.git
 python .\ci\build_windows.py
 ```
 
-## Step 6 : Create the Windows GPU Jenkins AMI
+## Step 6 : Create the Windows Jenkins AMI
 It differs from the previous AMI as it has base AMI + Jenkins Slave autoconnect.
 
 Restart the stopped instance
